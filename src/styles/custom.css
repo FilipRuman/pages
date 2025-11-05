@@ -1,0 +1,9 @@
+:root {
+  --sl-font: "Fira code", serif;
+  --sl-font-ui: "Fira code", serif;
+}
+/* Option B: only apply to sidebar labels */
+.sl-sidebar a,
+.sl-sidebar .sl-sidebar-item {
+  font-family: "Fira code", serif;
+}
