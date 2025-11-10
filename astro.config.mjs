@@ -22,10 +22,10 @@ export default defineConfig({
         // ion(),
 
         //pagePlugin(),
-        starlightImageZoom(),
-        starlightUtils({
-          multiSidebar: true,
-        }),
+        // starlightImageZoom(),
+        // starlightUtils({
+        //   multiSidebar: true,
+        // }),
 
       ],
       // expressiveCode: {
