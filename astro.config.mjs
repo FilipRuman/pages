@@ -15,10 +15,10 @@ export default defineConfig({
        ],
       title: "FR",
       plugins: [
-         // starlightImageZoom(),
-          // starlightUtils({
-          //   multiSidebar: true,
-          // }),
+         starlightImageZoom(),
+         starlightUtils({
+           multiSidebar: true,
+         }),
       ],
       // expressiveCode: {
       //   themes: ["tokyo-night"],
