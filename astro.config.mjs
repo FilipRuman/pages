@@ -1,7 +1,11 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightUtils from "@lorenzo_lewis/starlight-utils";
+import starlightImageZoom from 'starlight-image-zoom'
+// themes
 import { ion } from "starlight-ion-theme";
+import pagePlugin from "@pelagornis/page";
 // https://astro.build/config
 export default defineConfig({
   site: "https://filipruman.github.io",
@@ -14,10 +18,19 @@ export default defineConfig({
         "./src/styles/custom.css",
       ],
       title: "FR",
-      plugins: [ion()],
-      expressiveCode: {
-        themes: ["tokyo-night"],
-      },
+      plugins: [
+        // ion(),
+
+        //pagePlugin(),
+        starlightImageZoom(),
+        starlightUtils({
+          multiSidebar: true,
+        }),
+
+      ],
+      // expressiveCode: {
+      //   themes: ["tokyo-night"],
+      // },
       social: [
         {
           icon: "github",
@@ -27,16 +40,25 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: "Guides",
+          label: "cosinus",
           items: [
-            // Each item here is one entry in the navigation menu.
-            { label: "Example Guide", slug: "guides/example" },
+            { slug: 'cosinus/tst' },
+            { label: "Source code  ", link: "https://github.com/FilipRuman/cosinus" }, 
           ],
         },
-
         {
-          label: "simple parser in rust",
-          autogenerate: { directory: "writing a simple parser in rust" },
+          label: "c parser",
+          items: [
+
+            { slug: 'parser/preamble' },
+            { slug: 'parser/setup' },
+            { slug: 'parser/lexer' },
+            { slug: 'parser/basic_parser' },
+
+
+
+          { label: "Source code  ", link: "https://github.com/FilipRuman/RIP" }, 
+          ]
         },
       ],
     }),

@@ -2,7 +2,6 @@
 title: 2. lexer
 description: lexer
 ---
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>
 
 #### What is a lexer?
 * Lexer is a simple program that converts arbitrary text that it reads from a file, into simple tokens.
@@ -1087,4 +1086,4 @@ pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
 Now we should be able to test everything by just running our program with `cargo run`.
 Than look at the output in console and see if the output tokens are right.
 
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>
+<p style="text-align: center; ; font-size: 1.5rem; font-weight: bold;">  <a href="https://github.com/FilipRuman/RIP">Source code </a> </p>

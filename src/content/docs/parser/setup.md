@@ -2,7 +2,6 @@
 title: 1. setup
 description: setup
 ---
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>
 
 1.  Setup your rust project TODO: Add link for some tutorial.
 2.  add log and colog[TODO:Add link to github] create to your project ''TODO: put some command in here''.
@@ -107,6 +106,3 @@ L->	76+
 O->	79	
 = 372
 * split contents of file into vec of strings that contain 1 line. 
-
-
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>

@@ -2,7 +2,6 @@
 title: 0. preamble
 description: preamble
 ---
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>
 
 Like a constitution every good tutorial needs a preamble. 
 # Goals of this project:
@@ -23,4 +22,3 @@ Debugging is really important.
 
 ---
 
-<p style="text-align: center;">  <a href="https://github.com/FilipRuman/RIP">GitHub </a> </p>
