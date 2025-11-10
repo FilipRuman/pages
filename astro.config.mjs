@@ -12,11 +12,11 @@ export default defineConfig({
   base: "/pages",
   integrations: [
     starlight({
-      customCss: [
-        // Relative path to your @font-face CSS file.
-        "./src/fonts/font-face.css",
-        "./src/styles/custom.css",
-      ],
+      // customCss: [
+      //   // Relative path to your @font-face CSS file.
+      //   "./src/fonts/font-face.css",
+      //   "./src/styles/custom.css",
+      // ],
       title: "FR",
       plugins: [
         // ion(),
