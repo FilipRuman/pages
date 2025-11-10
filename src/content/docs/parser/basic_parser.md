@@ -137,3 +137,460 @@ impl Parser {
 
 </details>
 
+Now let's implement 'Expression' struct. We will have to add a lot of values for it, but we will add them gradually when implementing a function to parse this type of enum.  
+
+
+``` rust
+parser/expression.rs
+
+#[derive(Debug, Clone)]
+pub struct DebugData {
+    pub line: u16,
+    pub file: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum Expression {
+    Dereference {
+        value: Box<Expression>,
+        debug_data: DebugData,
+    },
+    Number(u32, DebugData),
+    Binary {
+        left: Box<Expression>,
+        operator: Token,
+        right: Box<Expression>,
+        debug_data: DebugData,
+    },
+    Prefix {
+        prefix: Token,
+        value: Box<Expression>,
+        debug_data: DebugData,
+    },
+    Grouping {
+        value: Box<Expression>,
+        debug_data: DebugData,
+    },
+    ...
+}
+```
+
+For now put there those simple ones.
+
+## Token stats
+
+Token stats will allow us to get correct expression parsing function for certain token.
+Every stat will have binding power, nod, and led functions needed for prat parsing.
+
+
+```rust
+parser/token_stats.rs
+use std::collections::HashMap;
+
+use crate::{
+    lexer::token::TokenKind,
+    parser::{
+        Parser,
+        expression::Expression,
+        parsing_functions::{self, grouping, identifier_parsing},
+    },
+};
+use anyhow::Result;
+
+type NodFunction = fn(&mut Parser) -> Result<Expression>;
+type LedFunction = fn(&mut Parser, left: Expression, bp: i8) -> Result<Expression>;
+pub struct TokenStats {
+    pub binding_power: i8,
+    pub nod_function: Option<NodFunction>,
+    pub led_function: Option<LedFunction>,
+}
+pub fn token_stats() -> HashMap<TokenKind, TokenStats> {
+    HashMap::from([
+        (
+            TokenKind::EndOfFile,
+            TokenStats {
+                binding_power: -1,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::SemiColon,
+            TokenStats {
+                binding_power: -1,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::BitwiseShiftLeft,
+            TokenStats {
+                binding_power: 2,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::BitwiseShiftRight,
+            TokenStats {
+                binding_power: 2,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Plus,
+            TokenStats {
+                binding_power: 2,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Minus,
+            TokenStats {
+                binding_power: 2,
+                nod_function: Some(parsing_functions::prefix),
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Star,
+            TokenStats {
+                binding_power: 3,
+                nod_function: Some(parsing_functions::dereference),
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Slash,
+            TokenStats {
+                binding_power: 3,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Percent,
+            TokenStats {
+                binding_power: 3,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Equals,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::NotEquals,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Less,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::LessEquals,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Greater,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::GreaterEquals,
+            TokenStats {
+                binding_power: 4,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Or,
+            TokenStats {
+                binding_power: 1,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::And,
+            TokenStats {
+                binding_power: 1,
+                nod_function: None,
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Not,
+            TokenStats {
+                binding_power: 1,
+                nod_function: Some(parsing_functions::prefix),
+                led_function: Some(parsing_functions::binary),
+            },
+        ),
+        (
+            TokenKind::Number,
+            TokenStats {
+                binding_power: 0,
+                nod_function: Some(parsing_functions::data_parsing::number),
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::String,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Identifier,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Return,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::CloseParen,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::OpenParen,
+            TokenStats {
+                binding_power: 5,
+                nod_function: Some(parsing_functions::grouping),
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::True,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::False,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::CloseCurly,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::CompilerData,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Typedef,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::PlusEquals,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::MinusEquals,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::StarEquals,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::SlashEquals,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::PlusPlus,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::MinusMinus,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Equals,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Reference,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Static,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::OpenBracket,
+            TokenStats {
+                binding_power: 5,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::CloseBracket,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::OpenCurly,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Comma,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::While,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::For,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::If,
+            TokenStats {
+                binding_power: 0,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        (
+            TokenKind::Dot,
+            TokenStats {
+                binding_power: 1,
+                nod_function: None,
+                led_function: None,
+            },
+        ),
+        // Colon,
+        // Question,
+        // Reference,
+        // Other,
+        // Constant,
+    ])
+}
+
+```
+
+
+
+
+## Testing
+
+```c 
+15 % ((25 / -66) * (*81 - 25)) 
+
+```
+
