@@ -10,18 +10,15 @@ export default defineConfig({
     starlight({
        customCss: [
          // Relative path to your @font-face CSS file.
-         "src/fonts/font-face.css",
-         "src/styles/custom.css",
+         "./src/fonts/font-face.css",
+         "./src/styles/custom.css",
        ],
       title: "FR",
       plugins: [
-
-        pagePlugin(),
-         starlightImageZoom(),
-         starlightUtils({
-           multiSidebar: true,
-         }),
-
+         // starlightImageZoom(),
+          // starlightUtils({
+          //   multiSidebar: true,
+          // }),
       ],
       // expressiveCode: {
       //   themes: ["tokyo-night"],
