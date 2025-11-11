@@ -15,7 +15,7 @@ Let's start by creating parse function that will load our file and use lexer to 
 <summary> ⚠️ Code </summary>
 
 ```rust
-main.rs
+//main.rs
 
 mod lexer;
 use std::{
@@ -72,7 +72,7 @@ mod.rs files allow you to link other rust files in that directory
 
 
 ```rust 
-lexer/mod.rs
+//lexer/mod.rs
 
 pub mod token;
 
@@ -129,7 +129,7 @@ Now let's create a 'tokenize' function that will initialize the lexer with conte
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
-lexer/mod.rs
+//lexer/mod.rs
 
 
 pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
@@ -160,7 +160,7 @@ It will contain all token types that we need, like: GreaterEquals, Not, Number, 
 **For list of all token kinds look at the code down bellow**
 
 ``` rust
-lexer/token.rs
+//lexer/token.rs
 // allows this struct to be easily printed with {:?}. + can use .clone() 
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -288,6 +288,8 @@ We need:
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
+//lexer/mod.rs
+
 pub struct Lexer {
     contents: Vec<char>,
     pub i: usize,
@@ -308,7 +310,7 @@ They can start with more than 1 character so we would have to insert right patte
 
 So to improve it we also need 'TokenPatternInitialization' struct:  
 ``` rust
-lexer/patterns.rs
+//lexer/patterns.rs
 
 use crate::lexer::{
     Lexer,
@@ -338,7 +340,7 @@ Create a 'patterns' function.
 It will return pattern initializations.
 
 ``` rust
-lexer/patterns.rs
+//lexer/patterns.rs
 
 fn patterns() -> Vec<TokenPatternInitialization> {
     vec![
@@ -401,7 +403,7 @@ It will collect all characters until it encounter's one that is not inside 'Lexe
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
-lexer/tokenization_functions.rs
+//lexer/tokenization_functions.rs
 
 use crate::lexer::{
     Lexer,
@@ -434,6 +436,8 @@ pub fn handle_number(line: u16, lexer: &mut Lexer) -> Result<Token> {
 
 
 ``` rust
+//lexer/tokenization_functions.rs
+
 pub fn handle_string(line: u16, lexer: &mut Lexer) -> Result<Token> {
     lexer.expect('"')?;
 
@@ -461,6 +465,8 @@ pub fn handle_string(line: u16, lexer: &mut Lexer) -> Result<Token> {
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
+//lexer/tokenization_functions.rs
+
 pub fn handle_compiler_data(line: u16, lexer: &mut Lexer) -> Result<Token> {
     lexer.expect('#')?;
 
@@ -487,6 +493,8 @@ pub fn handle_compiler_data(line: u16, lexer: &mut Lexer) -> Result<Token> {
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
+//lexer/tokenization_functions.rs
+
 pub fn handle_comments(line: u16, lexer: &mut Lexer) -> Result<Token> {
     lexer.expect('/')?;
     lexer.expect('/')?;
@@ -514,6 +522,8 @@ pub fn handle_comments(line: u16, lexer: &mut Lexer) -> Result<Token> {
 <summary> ⚠️ Implementation </summary>
 
 ``` rust
+//lexer/tokenization_functions.rs
+
 pub fn handle_identifier(line: u16, lexer: &mut Lexer) -> Result<Token> {
     let mut value = String::new();
     while lexer
@@ -545,7 +555,7 @@ pub fn handle_identifier(line: u16, lexer: &mut Lexer) -> Result<Token> {
 
 Now we nee to initialize all patterns:
 ``` rust
-lexer/patterns.rs
+//lexer/patterns.rs
 
 ...
 
@@ -910,7 +920,8 @@ HashMap<(char, char), TokenPattern>
 <summary> ⚠️ Implementation  </summary>
 
 ``` rust
-lexer/patterns.rs
+//lexer/patterns.rs
+
 pub fn setup_token_patters() -> Result<HashMap<(char, char), TokenPattern>> {
     let patterns = patterns();
     let mut hashmap = HashMap::new();
@@ -948,7 +959,7 @@ It will get needed characters form lexer and output 'TokenPattern' that we will 
 <summary> ⚠️ Implementation  </summary>
 
 ``` rust
-lexer/patterns.rs
+//lexer/patterns.rs
 
 ///INFO: Uses Lexer to get current and next char and get right function for parsing value that starts
 /// with those chars
@@ -973,7 +984,7 @@ Now let's  initialize lexer with needed values.
 
 
 ```rust
-lexer/mod.rs
+//lexer/mod.rs
 
 pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
     let valid_identifier_token_chars: HashSet<char> = [
@@ -1037,7 +1048,7 @@ when we get a valid pattern we need to check if it is a long one or the fast one
 <summary> ⚠️ Implementation  </summary>
 
 ``` rust
-lexer/mod.rs
+//lexer/mod.rs
 
 pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
 ...

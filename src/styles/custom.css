@@ -1,5 +1,6 @@
-:root {
+@layer starlight, galaxy;
 
+:root {
   --sl-content-max-width: 750rem; /* default ~60rem, you can increase or decrease */
   --sl-font: "Fira code", serif;
   --sl-font-ui: "Fira code", serif;
@@ -20,7 +21,7 @@
 }
 
 :root,
-[data-theme='dark'] {
+[data-theme="dark"] {
   --custom-color-text: rgba(255, 255, 255, 0.84);
   --custom-color-text-strong: #fff;
 
@@ -31,17 +32,16 @@
   --sl-color-text-accent: rgba(255, 255, 255, 0.78);
 }
 /* Control the main content and sidebar proportions */
-.sl-container{
-  margin-left:5px;
+.sl-container {
+  margin-left: 5px;
   max-width: fit-content;
 }
-.main-pane{
-      width: 85%;
+.main-pane {
+  width: 85%;
 }
-.right-sidebar-container{
+.right-sidebar-container {
   width: 300px;
 }
-
 
 .sl-markdown-content {
   font-size: 1rem;
@@ -60,7 +60,6 @@
 header.header {
   border: none;
 }
-
 
 // ----------------------------------------
 // Search
@@ -141,7 +140,6 @@ site-search button[data-open-modal] {
   padding: 5px 8px;
 }
 
-// don't override <a> text color for home page buttons
 .sl-markdown-content .simple-page-hero__links a:not(:where(.not-content *)) {
   color: unset;
 }
