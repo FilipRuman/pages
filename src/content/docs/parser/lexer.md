@@ -242,6 +242,7 @@ pub enum TokenKind {
     Break,
     Other,
     Constant,
+    Unsigned,
 }
 ```
 
@@ -1014,6 +1015,7 @@ pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
         ("struct", TokenKind::Struct),
         ("for", TokenKind::For),
         ("typedef", TokenKind::Typedef),
+        ("unsigned", TokenKind::Unsigned),
     ]);
 
     let mut lexer = Lexer {

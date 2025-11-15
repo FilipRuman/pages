@@ -65,6 +65,7 @@ export default defineConfig({
             { slug: "parser/setup" },
             { slug: "parser/lexer" },
             { slug: "parser/basic_parser" },
+            { slug: "parser/type_parsing_functions" },
 
             {
               label: "Source code  ",
