@@ -223,7 +223,7 @@ use crate::parser::types::DataType,
 #[derive(Debug, Clone)]
 pub struct Property {
     pub var_name: String,
-    pub var_type: DataType,
+  pub var_type: DataType,
 }
 ...
 ```
@@ -326,8 +326,8 @@ pub enum DataType {
 
 ### Parsing 
 
-To parse enum we will have to the name of a field, than check if it has some value assigned to it.
-If the value is set the it should carry thru the next fields, increasing by one.
+To parse enum we will have to read the name of a field, than check if it has some value assigned to it.
+If the value is set than it should carry on thru the next fields, increasing by one.
 
 :::caution
 remember to expect tokens like '{' & '}' on the beginning and end

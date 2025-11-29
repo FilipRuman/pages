@@ -473,7 +473,7 @@ pub fn token_stats() -> HashMap<TokenKind, TokenStats> {
             TokenKind::OpenParen,
             TokenStats {
                 binding_power: 5,
-                nod_function: Some(parsing_functions::grouping),
+                nod_function: Some(parsing_functions::open_paren),
                 led_function: None,
             },
         ),
@@ -771,13 +771,13 @@ pub fn prefix(parser: &mut Parser) -> Result<Expression> {
 </details>
 
 
-### parsing_functions::grouping
+### parsing_functions::open_paren
 
 :::tip
 Always use ``parser::expected(TokenKind::SMTH)?;`` when moving past a known token eg.
 ``` rust
 // pseudo code
-fn grouping(parser) -> Result<...>{
+fn open_paren(parser) -> Result<...>{
 parser.expect(TokenKind::OpenParen)?;
 ... // parse value
 parser.expect(TokenKind::CloseParen)?;
@@ -796,7 +796,7 @@ It will be getting it's value using the 'expression()'
 
 ``` rust
 //parser/parsing_functions/mod.rs
-pub fn grouping(parser: &mut Parser) -> Result<Expression> {
+pub fn open_paren(parser: &mut Parser) -> Result<Expression> {
     parser.expect(TokenKind::OpenParen)?;
     let value = Box::new(expression(parser, 0)?);
     parser.expect(TokenKind::CloseParen)?;
