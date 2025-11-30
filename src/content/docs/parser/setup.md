@@ -3,13 +3,10 @@ title: 1. setup
 description: setup
 ---
 
-1.  Setup your rust project TODO: Add link for some tutorial.
-2.  add log and colog[TODO:Add link to github] create to your project ''TODO: put some command in here''.
+1.  Setup your rust project  with ``cargo init <name>``.
+2.  add log and [colog](https://docs.rs/colog/latest/colog/) create to your project ``cargo add colog log``.
 * Why we need it? we don't really need them but log create will give us nice functions for printing warning, info and errors. and colog will automatically set it up and add colors to them - who doesn't like separate colors for debug messages of different types?  
-* than add code:
-
-
-
+* add code:
 
 ``` rust
 // main.rs
@@ -23,16 +20,12 @@ fn main() {
 ```
 
 
-* than run this code and you should see nice logs in your terminal.
-3. next we will add anyhow[TODO:Add link to github]. 
+* run this code with ``cargo run `` and you should see nice logs in your terminal.
+3. next we will add [anyhow](https://docs.rs/anyhow/latest/anyhow/) ``cargo add anyhow``. 
 * what is anyhow? Anyhow makes adding great debug messages in code really simple.
-* it allows us to eg. add context to error and propagate it further. 
+* it allows us to eg. add context to error and propagate it further. this is possible thanks to the [result type](https://doc.rust-lang.org/std/result/).
 Example:
-
-
-
 ``` rust
-// Result TODO: Add link to information about it.
 use anyhow::{Context, Result, bail};
 // Result<T,E> T- value, in this instance nothing. E- error value - by importing anyhow::Result i don't have to specify type - it is anyhow::Error.TODO: add link to anyhow error
 fn do_smth() -> Result<()> {
@@ -65,21 +58,19 @@ fn calculate_n() -> Result<u16> {
 ```
 
 
-
 # Reading from a file.
-
 ## create test file
-TODO:
+
 
 ## reading
 
 Reading a file in rust is as simple as:
-
 ```rust
-// there are at least 5 ways to represent string in rust: TODO: add link to string types
+// there are at least 5 ways to represent string in rust: https://doc.rust-lang.org/std/string/struct.String.html
 let path: &str = "path/to/a/file"; 
 let file: String  = std::fs::read_to_string(path)?;
-info!("Contents of file: \n {file}");
+let chars: Vec<char> = file.chars() // returns iterator, it could be nice but normal vector is more flexible;
+                            .collect::<Vec<char>>(); // converts iterator into a vec
 ```
 >[!Warning]
 > Loading whole file at once might be a problem when woring with large files.
@@ -87,13 +78,6 @@ info!("Contents of file: \n {file}");
 > If you want you might implement it differently. this should be fairly simple.
 but this gives a one big string. for out purpose better way would be to have our data as an array/vector of characters.
 
-```rust
-// there are at least 5 ways to represent string in rust: TODO: add link to string types
-let path: &str = "path/to/a/file"; 
-let file: String  = std::fs::read_to_string(path)?;
-let chars: Vec<char> = file.chars() // returns iterator, it could be nice but normal vector is more flexible;
-                            .collect::<Vec<char>>(); // converts iterator into a vec
-```
 Great, now we have everything that is needed to start writing our lexer. 
 If you are new to rust I recommend you to try to do tasks that I'll specify bellow. they will help you to understand string manipulation in rust better, and thus help you later.
 * Read 15 characters at a time.
