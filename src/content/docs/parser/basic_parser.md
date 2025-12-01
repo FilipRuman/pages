@@ -15,10 +15,7 @@ Expression will be a more complex piece of information that will be composed of 
 
 Than we will be able to turn those expressions easily into whatever we need- assembly, code in other language, etc. 
 
-## Core definitions:
-
-### Binding power -> bp
-This is a value that will be assigned per token type, it's a core part of a Prat parser. 
+## Core definitions, it's a core part of a Prat parser. 
 
 :::note[Example usage of binding power in code]
 ``` rust 
