@@ -3,9 +3,8 @@ title: 5. expression parsing functions
 description: parser
 ---
 Now we we will need to implement functions to parse all of the other expressions that we need.
-And we need add those expressions to our expression enum, and also update token stats.
+And we need to add those expressions to our expression enum, and also update token stats.
 ## Implementation
-
 ###  Assignment
 Will be called when parsing `= += -= *= /=` tokens.
 It will be used when eg.
@@ -14,8 +13,6 @@ a += 52
 ```
 It needs to know value, operator and target to assign. 
 
-<details>
-<summary> ⚠️ Implementation </summary>
 
 ``` rs
 //parser/parsing_functions/mod.rs
@@ -30,8 +27,6 @@ pub fn assignment(parser: &mut Parser, left: Expression, _: i8) -> Result<Expres
     })
 }
 ```
-
-</details>
 
 
 ### Increment && Decrement 
@@ -65,7 +60,7 @@ pub fn increment(parser: &mut Parser, left: Expression, _: i8) -> Result<Express
 
 We have already implemented a nod function for a '(' token - grouping expression, eg. `2 * (52 - 22)`
 But in c to convert type of a variable you do: `bool z = (bool)1`
-So to differentiate this we will check if inside of the parentheses there is an identifier, and if it's value is inside the parser::valid_data_type_names
+So to differentiate this we will check if inside of the parentheses there is an identifier, and if it's value is inside the parser::valid_data_type_names.
 The type conversion itself has to know it's type and value it converts - next expression 
 
 
@@ -167,10 +162,9 @@ pub fn access_reference(parser: &mut Parser) -> Result<Expression> {
  static int count = 0;
 ```
 
-In c static keyword tells the compiler to store this variable on [.data/.bss](https://www.geeksforgeeks.org/c/memory-layout-of-c-program/) instead of the [stack](https://os.phil-opp.com/heap-allocation/#local-and-static-variables).
+In C, static keyword tells the compiler to store this variable on [.data/.bss](https://www.geeksforgeeks.org/c/memory-layout-of-c-program/) instead of the [stack](https://os.phil-opp.com/heap-allocation/#local-and-static-variables).
 ![memory layout c](https://media.geeksforgeeks.org/wp-content/uploads/20250122155858092295/Memory-Layout-of-C-Program.webp)
-It allows you to make value of this variable to persist through the life time of the program, without using heap.
-
+It allows you to make value of this variable persist through the life time of the program, without using heap.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -195,8 +189,9 @@ pub fn static_expr(parser: &mut Parser) -> Result<Expression> {
 ``` c 
  some.thing.to.access = 2;
 ```
-
-It needs to know the thing it accesses - left and the value - right 
+Required data:
+* the thing it accesses - left
+* value - right 
 
 
 <details>
@@ -275,7 +270,7 @@ pub fn string(parser: &mut Parser) -> Result<Expression> {
 #include "this part also should be included"
 ```
 
-This is all you need
+This is all you should need to implement this.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -395,7 +390,7 @@ Than we need to check if the next token is a identifier:
     a. it is: we take it's value as a name for variable/function.
     b. it isn't: just return a 'DataTypeAccess' expression with the data type that we parsed before. 
 
-Than we need to check for array declaration because in c you put square brackets after variable name: ``int array[][] = ...; ``.
+Than we need to check for array declaration, because in c you put square brackets after a variable name: ``int array[][] = ...; ``.
 So we use ``types::wrap_data_type_in_an_array`` for this.
  
 
@@ -650,7 +645,7 @@ pub fn parse_while(parser: &mut Parser) -> Result<Expression> {
 
 ### Break 
 
-just return expression with debug data inside and expect token of kind Bread LOL.
+Just return expression with debug data inside and expect token of kind Break.
 <details>
 <summary> ⚠️ Implementation </summary>
 

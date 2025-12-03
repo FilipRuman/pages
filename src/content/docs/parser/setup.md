@@ -13,7 +13,7 @@ cargo init <name>
 Cargo downloads your Rust package’s dependencies, compiles your packages, makes distributable packages, and uploads them to crates.io](https://doc.rust-lang.org/cargo/)"
 :::
 
-This gives us a clean Rust project to build our parser.
+This gives us a clean Rust project.
 
 ## 2. Add Logging Support
 
@@ -30,7 +30,7 @@ cargo add log colog
 
 Why logging?
 As we build the lexer and parser, it’s extremely helpful to print structured debug information.
-Especially when writing error prone code- like working with text.
+Especially when writing error-prone code- like working with text.
 Colored logs make it even easier to understand what’s happening.
 
 Add this example:
@@ -54,7 +54,7 @@ cargo run
 
 You should see nicely formatted, colored log output.
 
-## 3. Add Error Handling with anyhow
+## 3. Add easier error handling with anyhow
 Next, add the [anyhow](https://docs.rs/anyhow/latest/anyhow/)
 
 crate:
@@ -62,22 +62,24 @@ crate:
 cargo add anyhow
 ```
 
-what is anyhow?
+What is anyhow?
 Anyhow makes adding great debug messages in code really simple. 
-It allows us to eg. add context to error and propagate it further. this is possible thanks to the [result type](https://doc.rust-lang.org/std/result/).
+It allows us to eg. add context to an error and propagate it further. This is possible thanks to the Rust's [result type](https://doc.rust-lang.org/std/result/).
 
 This pattern will be extremely useful once we start parsing and want readable error messages.
 
 Example:
 ``` rust
 use anyhow::{Context, Result, bail};
-// Result<T,E> T- value, in this instance nothing. E- error value - by importing anyhow::Result i don't have to specify type - it is anyhow::Error.TODO: add link to anyhow error
+// Result<T,E> T- value, in this instance nothing. E- error value - by importing anyhow::Result i don't have to specify type - it is anyhow::Error
 fn do_smth() -> Result<()> {
-    let x = todo!();
-    let y = todo!();
+    // u16 - 16 bit unsigned integer
+    let x:u16 = 9;
+    let y = 10;
+
     // with_context allows us to add context that is evaluated lazily- only once an error does occur.
-    // and than use ? to propagate the error.
-    calculate_w(x,y).with_context(|| {
+    // and then use ? to propagate the error.
+    let w: u16 = calculate_w(x,y).with_context(|| {
         format!(
             "calculate_w -> x: {x} y: {y}, current time:{}",
             time::SystemTime::now()
@@ -89,11 +91,13 @@ fn do_smth() -> Result<()> {
 fn calculate_w(x: u16, y: u16) -> Result<u16> {
     if y == 0 {
         // the same as return Err(value);
-        bail!("Can't dived by 0!");
+        bail!("Can't divide by 0!");
     }
 
-    // ? returns function with error if result contains it. otherwise just 'unwraps' value.
-    let n: u16 = calculate_n().context("calculate_n - this often means... . you should create issue on github with information form this log.")?;
+    // what ? does in rust:
+    // result type: Err- immediately returns function with this error result.
+    // result type: OK- just 'unwraps' value and move on and run next piece of code.
+    let n: u16 = calculate_n().context("calculate_n - this often means... . you should create issue on github with information from this log.")?;
     Ok(x / y * n)
 }
 fn calculate_n() -> Result<u16> {
@@ -180,17 +184,16 @@ int main() {
 :::caution
 Loading whole file at once might be a problem when working with large files.
 But modern systems have so much memory that for our purposes this won't be a problem.
-If you want you might implement it differently. this should be fairly simple.
+If you want you might implement it differently. This should be fairly simple.
 :::
 
 Reading a file in rust is as simple as:
 ```rs
 std::fs::read_to_string(path)?
 ```
-but this gives a one big string.
-but for us a way better format would be to just have a  of characters
-A [vec](https://doc.rust-lang.org/std/vec/struct.Vec.html) of characters is easier to work with than raw UTF-8 bytes for our purposes. 
-Lexer will be checking char by char and sometimes peeking 1 char ahead.
+This gives one big string.
+But a [vec](https://doc.rust-lang.org/std/vec/struct.Vec.html) of characters is easier to work with than raw UTF-8 bytes for our purposes. 
+This is because the lexer will be checking char by char and sometimes peeking 1 char ahead.
 ```rust
 // there are at least 5 ways to represent string in rust: https://doc.rust-lang.org/std/string/struct.String.html
 let path: &str = "path/to/a/file"; 
@@ -200,13 +203,13 @@ let chars: Vec<char> = file.chars() // returns iterator, it could be nice but no
 ```
 ## Practice Tasks (Recommended)
 
-If you’re new to Rust, try these small exercises. They will strengthen your understanding of string manipulation witch is  crucial for writing a lexer.
+If you’re new to Rust, try these small exercises. They will strengthen your understanding of string manipulation which is  crucial for writing a lexer.
 
-### Split a file into Vec<String> where each element is a line
+#### Split a file into Vec<String> where each element is a line
 
-### Read 15 characters at a time
+#### Read 15 characters at a time
 
-### Sort 15-character segments by their total character code sum
+#### Sort 15-character segments by their total character code sum
 Example:
 ``HELLO = 72 + 69 + 76 + 76 + 79 = 372``
 
