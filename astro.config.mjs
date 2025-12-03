@@ -31,7 +31,7 @@ export default defineConfig({
         }),
       ],
       expressiveCode: {
-        themes: ["tokyo-night", "light-plus"],
+        themes: ["dark-plus", "light-plus"],
         styleOverrides: {
           borderRadius: "0.4rem",
           frames: {
@@ -65,6 +65,8 @@ export default defineConfig({
             { slug: "parser/setup" },
             { slug: "parser/lexer" },
             { slug: "parser/basic_parser" },
+            { slug: "parser/type_parsing_functions" },
+            { slug: "parser/expression_parsing_functions" },
 
             {
               label: "Source code  ",

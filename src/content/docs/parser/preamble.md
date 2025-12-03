@@ -2,23 +2,16 @@
 title: 0. preamble
 description: preamble
 ---
-
-Like a constitution every good tutorial needs a preamble. 
-# Goals of this project:
-
-
+This tutorial will walk you step-by-step through building a lexer and Pratt parser for the C language.
+By the end, you’ll understand how real-world compilers work.
 
 ![Diagram](./compilersteps.png) 
-Great learning resource on writing parsers. + great if you want to use go-lang instead of rust.
-![[https://www.youtube.com/watch?v=V77J9l8N-P8]]
 
+## Knowledge requirements:
+You only need basic programming experience.
+You don’t need to know Rust or C.
+The tutorial introduces most of the needed concepts as we go.
+## Additional tips
+I will skip writing tests within this tutorial, but as you go, you should test code that you wrote.
 
-C-lang prat parser & lexer
-
-## Knowlage requierments:
-TODO:
-## What to lookout for:
-Debugging is really important.
-
----
-
+Feel free to experiment! Modify the syntax, add new operators. It will help you solidify the knowledge..

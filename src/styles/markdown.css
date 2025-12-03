@@ -41,7 +41,7 @@
 
   /* Unordered list markers */
   & ul:not(:where(.sl-steps, .not-content *)) > li::before {
-    content: "■";
+    content: "";
     position: absolute;
     left: 12px;
     top: 1.1em;
