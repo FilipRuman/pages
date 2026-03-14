@@ -3,17 +3,15 @@ title: 4. Rice
 description: Rice
 ---
 
-I really like to make programs that I use, look and behave in the exact way that
-I want. This includes: keyboard, whole desk setup, text editor and OS as a
-whole. But I have time constrains and I don't want this customization to take a
-lot of my precious time.
+I really like making the programs I use look and behave exactly the way I want.
+This includes my keyboard, the entire desk setup, my text editor, and the OS as
+a whole. However, I have time constraints, and I don’t want this customization
+to take too much of my time.
 
-On this page I will describe how I have achieved my current configuration
-without wasting too much time.
+On this page, I will describe how I achieved my current configuration without
+spending too much time on it.
 
-## Stylix
-
-As readme on [their repo](https://github.com/nix-community/stylix) says:
+## [Stylix](https://github.com/nix-community/stylix)
 
 > Stylix is a theming framework for NixOS, Home Manager, nix-darwin, and
 > Nix-on-Droid that applies color schemes, wallpapers, and fonts to a wide range
@@ -23,13 +21,15 @@ As readme on [their repo](https://github.com/nix-community/stylix) says:
 > further by applying themes to supported applications, following the "it just
 > works" philosophy.
 
-I personally use it mainly to apply sensible settings on most of the apps, by
-using the 'autoEnable'. This will enable customiztation for all programs that
-have been enabled in your home manager config. You can later easily disable them
-in `stylix.targets` in home manager module. Some programs like grub or plymoth
-need to be disabled inside the nixos module instead of the home manager one.
+I personally use it mainly to quickly apply sensible settings on various apps.
+Using `autoEnable` will enable customization for all programs that are enabled
+in your Home Manager configuration. You can later disable customization for
+specific programs in `stylix.targets` inside a Home Manager module.
 
-You can also easily set a cursor package and size through this
+Some programs, such as GRUB or Plymouth, need to be disabled inside the NixOS
+module instead of the Home Manager one.
+
+You can also easily set a cursor package and its size through this.
 
 ```nix
 {inputs, ...}: {
@@ -88,31 +88,31 @@ You can also easily set a cursor package and size through this
 }
 ```
 
-## Waypaper
+## [Waypaper](https://github.com/anufrievroman/waypaper)
 
-I really like my wallpapers to change, even if they often don't match completely
-match my system theme. This makes my system feel fresh eaverytime I turn on my
-pc. I can do this because I have a library of tens of absolute banger 4k+
-wallpapers(No I will not share them, finding them by hand is a part of the
-experience).
+I really like to have a fresh wallpaper every time I turn on my pc. This makes
+my system feel fresh every time. I can do this because I have a library of tens
+of absolute banger 4k+ wallpapers(No I will not share them, finding them by hand
+is a part of the experience).
 
 Using [waypaper](https://github.com/anufrievroman/waypaper) with
-[swaybg](https://github.com/swaywm/swaybg) as a backend I can eayly make my
-wallpapers be chosen randomly eaverytime I open hyprland. I just add to
-exec-once "waypaper --random" inside the hyprland's config. You also need to
-remember to set right setting inside the waypaper's gui.
+[swaybg](https://github.com/swaywm/swaybg) as a backend, I can easily make my
+wallpaper change randomly every time Hyprland starts. I just add
+`waypaper --random` to `exec-once` in the Hyprland configuration.
 
-## Plymouth
+You also need to remember to set the correct option in the Waypaper GUI.
+
+## [Plymouth](https://wiki.archlinux.org/title/Plymouth)
 
 ![Plymoth theme i use](https://raw.githubusercontent.com/adi1090x/files/master/plymouth-themes/previews/63.gif)
 
-Plymouth allows to display nice looking animation during startup & shutdown of
-your pc. This looks nice especially if you have encrypted your disk(as you
-should) with a very strong password, so it doesn't look too ugly when you type
-your 30 symbol pass.
+Plymouth allows you to display nice-looking animations during the startup and
+shutdown of your PC. This looks especially good if you have encrypted your disk
+(as you should) with a very strong password, so the screen does not look too
+ugly while you type your 30-character passphrase.
 
-I myself use rings animation from
-[plymoth themes](https://github.com/adi1090x/plymouth-themes?tab=readme-ov-file)
+I personally use the `rings_2` animation from
+[Plymouth themes](https://github.com/adi1090x/plymouth-themes?tab=readme-ov-file).
 
 ```nix
 {
@@ -147,16 +147,20 @@ I myself use rings animation from
 }
 ```
 
-## Hyprland
+## [Hyprland](https://github.com/hyprwm/Hyprland)
 
-I use Hyprland as a window manager, mainly because it is really stable and looks
-really good. Stylix has support for it but it only sets the window borders
-anyway.
+> Hyprland is a 100% independent, dynamic tiling Wayland compositor that doesn't
+> sacrifice on its looks. It provides the latest Wayland features, is highly
+> customizable, has all the eyecandy, the most powerful plugins, easy IPC, much
+> more QoL stuff than other compositors and more...
 
-My config is really simple, I have no creazy shortcuts. It is just a set of
-settings that I've gathered thruout my journey with NixOS, the base was from
-some kind of config that I've translated from the native hyrpland config. It is
-really bare bone, just some basic rounded borders, small gaps, snap transition
+I use Hyprland as my window manager mainly because it is very stable and looks
+great. Stylix has support for it, but it can really only set window borders.
+
+My configuration is very simple. I do not have any crazy shortcuts. It is mostly
+a set of settings that I gathered throughout my journey with NixOS. The base
+came from a configuration that I translated from the native Hyprland config. It
+is very bare-bones: just basic rounded borders, small gaps, and snap transition
 animations.
 
 This part handles inputs that control audio on your system:
@@ -175,14 +179,15 @@ bindl = [
 ];
 ```
 
-`xwayland.force_zero_scaling = true;` This is needed because I have a 1.5
-scalling on my 4K monitor, so that text is visible clearly. This works great
-with wayland apps but things that run on x11 aren't scaling properly and have a
-really low resolution, so I have to disable scaling on them and scale them in
-their builtin settings.
+`xwayland.force_zero_scaling = true;` - This is needed because I use 1.5 scaling
+on my 4K monitor so that text is clearly visible. This works well with native
+Wayland applications, but programs running through X11(steam) don't scale
+properly and end up with very low resolution. To fix this, I disable scaling for
+them and scale them using their built-in settings instead.
 
-For 'movement' I use Super + key form home row. This is a lot more ergonomic for
-my keyboard layout. To move a window to a workspace I just add SHIFT modifier.
+For movement, I use **Super + keys from the home row**. This is very ergonomic
+for my keyboard layout. To move a window to a workspace, I simply add the
+**Shift** modifier.
 
 ```nix
         "Super, s , workspace, 1"
@@ -316,34 +321,46 @@ my whole generic config
 }
 ```
 
-## Hyprpanel
+## [Hyprpanel](https://github.com/Jas-SinghFSU/HyprPanel?tab=readme-ov-file)
 
 ![My Hyprpanel config](./hyprpanel.png)
 
-I've recently moved from waybar to the hyprpanel. I think that it is a lot less
-hacky and works really great out of the box, but at the same time it can be
-pretty easily customized. It also works great with stylix.
+> HyprPanel as the name implies is a panel built specifically for Hyprland. It's
+> an extremely customizable panel that provides useful widgets out of the box to
+> display information about your system (volume, network status, bluetooth,
+> battery, calendar, notifications, OSDs, etc.). Additionally, it provides quick
+> access to context menus that allow you to control your system settings without
+> having to rely on external tools.
 
-It comes in with really good looking notifications handler and all buttons on
-bar are clickable with custom menus. It generally achieves the main goal that I
-have - great looking rice without any effort. It also comes with great working
-GUI settings screen.
+I've recently moved from [waybar](https://github.com/Alexays/Waybar) to the
+hyprpanel. It generally achieves the main goal that I have - great looking rice
+without any effort.
 
-The only issue I have is customizing it on nixos. To change some settings with
-home manager you need to do:
+Other advantages over Waybar:
 
-1. Disable homemanager configuration for hyprpanel - otherwise you will not be
+- Feels less hacky.
+- Better Stylix support.
+- Plug and play.
+- Easily customizable.
+- Great GUI settings.
+- Great looking notifications handler.
+- All buttons on the bar are clickable with custom menus.
+
+The only issue I have is customizing it on NixOS. To change some settings with
+home-manager you need to do:
+
+1. Disable home-manager configuration for hyprpanel - otherwise you will not be
    able to see the changed configuration.
 2. Rebuild your system to apply the previous change.
 3. Restart the hyprpanel.
 4. Open GUI setting of hyprpanel and make changes that you want to do in your
-   homemanager config.
-5. Export the config using a button in setting. TODO: ADD Photo
-6. Open the exported config and move it's contents to your .nix config
-7. Translate the json to nix and renable the homemanager configuration for
+   home-manager config.
+5. Export the config using a button in setting.
+6. Open the exported config and move its contents to your .nix config
+7. Translate the json to nix and re-enable the home-manager configuration for
    hyprpanel.
 8. Rebuild your system to apply changes.
-9. See if you achived desierd results, if not repeat.
+9. See if you've achieved desired results, if not repeat.
 
 my config:
 
@@ -392,19 +409,15 @@ my config:
 }
 ```
 
-## Hyprlock
-
-[Hyprlock](https://github.com/hyprwm/hyprlock/)
+## [Hyprlock](https://github.com/hyprwm/hyprlock/)
 
 > Hyprland's simple, yet multi-threaded and GPU-accelerated screen locking
 > utility.
 
-I will not make a screenshot for my config because idk how.
-
 I use it with a combination of [hypridle](https://github.com/hyprwm/hypridle) to
-lock my screen when I'm away form my pc. I also have a Super + X shortcut for
-quick screen locking. Of course this is not as safe as turning off your PC -
-especially if your disk is encrypted.
+automatically lock my screen when I'm away form my computer. I also have a
+`Super + X` shortcut for quick screen locking. Of course this is not as safe as
+turning off your PC - especially if your disk is encrypted.
 
 My Hyprlock config:
 
@@ -421,7 +434,7 @@ My Hyprlock config:
 
         background = [
           {
-            path = "/home/f/Walpapers/...";
+            path = "";
             blur_passes = 0;
             blur_size = 0;
 
@@ -544,25 +557,23 @@ My Hypridle config:
 }
 ```
 
-## Rofi
-
-![my rofi config](./rofi.png)
+## [Rofi](https://github.com/davatorium/rofi)
 
 > A window switcher, Application launcher and dmenu replacement.
 
-I know that there are many modern alternatives but I just have a working config
-for it and, it just works for me. The only mode that I use is dmenu anyway.
+![my rofi config](./rofi.png)
 
-## SDDM
+I know that there are many modern alternatives but I just have a working config
+for it. The only mode that I use is dmenu anyway.
+
+## [SDDM](https://github.com/sddm/sddm)
 
 ![my sddm config](./sddm.png)
-
-[SDDM](https://github.com/sddm/sddm)
 
 > SDDM is a modern display manager for X11 and Wayland sessions aiming to be
 > fast, simple and beautiful.
 
-SDDM is a display manager of my choice, mainly because of it's looks and how
+SDDM is a display manager of my choice, mainly because of its looks and how
 popular it is. It is the default display manager on KDE Palsma. I chose the
 [sddm-astronaut](https://github.com/Keyitdev/sddm-astronaut-theme)'s blackhole
 theme for it, but there are a lot of other good ones. I use this to override the
@@ -622,14 +633,50 @@ My whole config:
 
 :::tip
 
-If you ever have a problem with sddm or other software that doesn't allow you to
-boot into your normal desktop enviorment do following: Press Ctrl + LAlt +
-F2/F3/F... to go to another tty. This will show you a 'terminal' window that
-allows you to log in and use your pc in a terminal mode. Than you can just
-update your config or do anything else to save your pc.
+If you ever have a problem with SDDM, or other software that doesn't allow you
+to boot into your normal desktop environment do following:
 
-I had before porblem with sddm not working so I had to start hyprland by hand
-thru this method. Thankfully this issue was resolved after about 2weeks with a
-new update.
+Press Ctrl + LAlt + F2/F3/F... to go to another tty. This will show you a
+'terminal' window that allows you to log in and use your pc in a terminal mode.
+Than you can just update your config or do anything else to open normal
+graphicall environment.
+
+I had a problem with sddm not showing up. I had to start hyprland by hand thru
+this method. Thankfully this issue was resolved after about 2weeks with a new
+update.
 
 :::
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/NNC"
+        data-repo-id="R_kgDOQ3xb7Q"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQ3xb7c4C4CG7"
+        data-mapping="specific"
+        data-term="rice"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

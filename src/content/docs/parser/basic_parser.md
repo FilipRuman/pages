@@ -119,12 +119,12 @@ it doesn't take any expressions as parameters.
    time, it has BP of 0. Reads a number token - 25.
 1. Nod function of the number 25 gets called, and we get:
    `Expression::Number{value:25}`
-2. BP of the plus sign is 2, so we will call it's 'led' function with an
-   argument of Expression::Number{value: 25}.
+2. BP of the plus sign is 2, so we will call its 'led' function with an argument
+   of Expression::Number{value: 25}.
 3. Led function of the plus sign wants to get the expression on the right, so it
    calls the 'expression()' once again, with BP = 2
 4. It finds the number '55', but it gets bound to the multiplication sign.This
-   happens, because it's BP is 3, and 3 > 2. Next we will call led function of
+   happens, because its BP is 3, and 3 > 2. Next we will call led function of
    multiply sign, with Expression::Number{55}.
 5. This function reads the next token - number 22
 6. The next token is a ';', which has a BP of -1, so it is ignored.
@@ -280,8 +280,8 @@ The binding power was chosen so that:
 
 - Order of math operations is right
 - [ is always a led function
-- '*' is both dereference, and multiply sign, depending on if you use it's led
-  or nod function.
+- '*' is both dereference, and multiply sign, depending on if you use its led or
+  nod function.
 
 :::
 
@@ -991,17 +991,19 @@ right way.
 
 ---
 
-#### Bug?
+#### Bugs
 
-If you find anything to improve on this site or in this project's code, please
-create an issue describing it on
-[GitHub repo for this project](https://github.com/FilipRuman/RIP/issues).
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
 
 #### Support
 
-This all pages on this site are written by a human, and you can see everything
-for free without any ads. If you think that my work is valuable then please
-[give a star to GitHub repo for this project](https://github.com/FilipRuman/RIP)
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
 
 <script src="https://giscus.app/client.js"
         data-repo="FilipRuman/RIP"
@@ -1009,7 +1011,7 @@ for free without any ads. If you think that my work is valuable then please
         data-category="Announcements"
         data-category-id="DIC_kwDOQNyZns4C4CHN"
         data-mapping="specific"
-        data-term="basic parser"
+        data-term="expression parsing functions"
         data-strict="0"
         data-reactions-enabled="1"
         data-emit-metadata="0"

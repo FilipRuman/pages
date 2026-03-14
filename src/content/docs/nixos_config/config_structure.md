@@ -3,34 +3,33 @@ title: 1. Config Structure
 description: Config Structure
 ---
 
-Generally speaking it doesn't matter how your config is structured. It's the
-same thing as with programming, if you have a small project than the structure
-doesn't matter. But with time your config will certainly grow larger and larger.
-Especially if you have multiple machines.
+Generally speaking, it doesn’t matter how your configuration is structured. It’s
+the same as with programming: if you have a small project, the structure doesn’t
+matter. However, over time your configuration will certainly grow larger and
+larger (especially if you have multiple machines).
 
-The config structure that I recommend the most is called "Dendritic pattern" It
-will allow us to remove most of the boiler plater and write reusable configs
-that we can use on all machines.
+The configuration structure that I recommend most is called the “Dendritic
+pattern”. It allows you to remove most of the boilerplate and write reusable
+configurations that can be used across multiple machines.
 
-I really recommend those sources if you want to know more about this:
+I highly recommend those sources if you want to know more about this:
 
-- [Vimjoyer's vid](https://www.youtube.com/watch?v=-TRbzkw6Hjs)
+- [Vimjoyer's video](https://www.youtube.com/watch?v=-TRbzkw6Hjs)
 - [Dendritic design GitHub repo](https://github.com/Doc-Steve/dendritic-design-with-flake-parts)
 
 ## Basic Setup
 
-To setup a very basic dendritic pattern project we will use this command:
-
-`nix flake init -t github:vic/flake-file#dendritic` I recommend you to make it
-inside a git directory under `/etc/nixos/`. Using git you will be able to easily
-sync your config with other devices, and store it safely.
+To create a very basic dendritic-pattern project use this command:
+`nix flake init -t github:vic/flake-file#dendritic`. I recommend creating it
+inside a Git directory under `/etc/nixos/`. By using Git, you will be able to
+easily sync your config with other devices and store it safely.
 
 :::danger
 
-Most 'dumb/random' errors that I had when working with nix config, were because
-of git. If files in a subdirectory are not 'visible' when you rebuild your
-config, It probably is caused by this directory not being included inside your
-git tree. I'm a lazy person so I use
+Most of the "random" or "weird" errors I encountered when working with nix
+config were caused by git. If files in a subdirectory aren't "visiblel" when you
+rebuild your config, it is probably because this directory isn't included inside
+your Git tree. I like to use
 [lazy git](https://github.com/jesseduffield/lazygit) for this.
 
 :::
@@ -49,29 +48,35 @@ git tree. I'm a lazy person so I use
             └── hwConfig.nix
 ```
 
-This Is a basic structure that we will be developing right now Core of it is
-created by the previous command. All the nix files will be imported
-automatically by the [import tree flake](https://github.com/vic/import-tree)
-unless you put "_name" as the name of a file or directory.
+This shows a basic structure of a dendritic design config. The core of it was
+already created by the previous command. All the Nix files inside the
+`./modules/` directory, will be imported automatically by the
+[import tree flake](https://github.com/vic/import-tree), unless you prefix a
+file or directory name with an underscore (_name).
 
 ## Host Modules
 
-under the "modules" directory create a "hosts" subdirectory.\
-We will put there config that will allow specific machines behave in specific
-ways, while utilizing the same project as a config.
+Under the `modules` directory create a `hosts` subdirectory.\
+Config that allow specific machines to behave in particular ways ways will go
+there. This allows for configuring multiple machines using the same project as a
+config.
 
 :::tip[example]
 
-Your homelab doesn't have to have hyprland installed on it(you ssh onto it), but
-your laptop does. The same thing will be happenign with many other things like:
-hardware config display config(different resoulution) or even mouse sensitivity.
+Your home lab doesn't have to have Hyprland installed on it(you SSH onto it),
+but your laptop does. This will be also true for other configuration files, for
+example:
+
+- Hardware config
+- Display config(different resolution)
+- Mouse sensitivity.
 
 :::
 
-Create another directory with a name of your host(laptop, desktop, homeLab,
-etc.) I will reference it with "$host" through this tutorial.
+Create another directory named after your host(`laptop`, `desktop`, `homeLab`,
+etc.). I will reference it as `$host` through this tutorial.
 
-Than in a $host.nix file:
+Inside the `$host.nix` file:
 
 ```nix
 ### ./modules/host/$host/$host.nix
@@ -83,7 +88,7 @@ Than in a $host.nix file:
   ...
 }: {
   flake = {
-    # Declear  $host machine
+    # Declare $host machine
     nixosConfigurations.$host = inputs.nixpkgs.lib.nixosSystem {
       modules = with self.nixosModules; [
         $host
@@ -93,7 +98,7 @@ Than in a $host.nix file:
       ];
     };
 
-    # module for additiona configuration 
+    # module for additional configuration 
     nixosModules.$host = {pkgs, ...}: {
       environment.systemPackages = with pkgs; [
         blender
@@ -103,25 +108,32 @@ Than in a $host.nix file:
 }
 ```
 
-We need to create `nixosConfigurations.$host = inputs.nixpkgs.lib.nixosSystem`
-this will allow us to run:
-`sudo nixos-rebuild switch --upgrade --flake .#$host"` to use certain host file
-as a config on this $host machine.
-Than inside of the `inputs.nixpkgs.lib.nixosSystem`, we will be able to import any modules that we will create.
-Example of this is the  `flake.nixosModules.$host` module created in the
+`nixosConfigurations.$host = inputs.nixpkgs.lib.nixosSystem` will allow us to
+
+run: `sudo nixos-rebuild switch --upgrade --flake .#$host"` to use certain host
+file as a config on a `$host` machine. Inside the
+`inputs.nixpkgs.lib.nixosSystem` configuration you can import any of your
+modules. Example of this is the `flake.nixosModules.$host` module created in the
 previous snippet.
 
 ### Hardware Config
 
-We need to copy your hardware config file from the
-'/etc/nixos/hardware-config.nix' to the './modules/host/$host/hw-config.nix'
-We need to do this so that our config can mout filesystems right and has needed kernel support and more.
-The only change we need to do is wrap it in a flake parts module: "flake.nixosModules.$host"
-it will have the same name as the module inside $host.nix. This will mean that
-flake-file will automatically merge their contents so we don't have to import
-those two modules separately.
+Next, you need to move your `hardware-config.nix` from
+`/etc/nixos/hardware-config.nix` to `./modules/host/$host/hw-config.nix`. This
+configuration file is required for NixOS to work with your hardware.
+
+The only change you need to make is wrapping it in a flake parts module:
+`flake.nixosModules.$host`. It should have the same name as the module inside
+the `$host.nix`. This causes the flake-file to automatically merge their
+contents, so we don't have to import these two modules separately.
 
 This is how my hw-config looks:
+
+:::danger
+
+Do not copy **MY** config, it will **100% MAKE YOUR OS UNBOOTABLE**!
+
+:::
 
 ```nix
 {
@@ -179,16 +191,9 @@ This is how my hw-config looks:
 }
 ```
 
-:::danger
-
-Do not copy **MY** config, it will **100% MAKE YOUR OS UN BOOTABLE**!
-
-:::
-
 ## Example Modules
 
-Now I will show how some example NixOS modules would look like, they are taken
-straight from my personal config:
+Here are some example NixOS modules, taken directly from my personal config:
 
 ### 1. Enable NVIDIA GPU Support
 
@@ -222,7 +227,7 @@ straight from my personal config:
 }
 ```
 
-### 2. Docker with NVIDIA GPU Pass thru Support
+### 2. Docker with NVIDIA GPU Passthrough Support
 
 ```nix
 ### ./modules/docker.nix
@@ -242,8 +247,8 @@ straight from my personal config:
 }
 ```
 
-As explained before you can import those modules by just putting their name(eg.
-docker, nvidia) inside your host module:
+As explained before, you can import those modules by just writing their
+names(eg. docker, nvidia) inside your host module:
 
 ```nix
 nixosConfigurations.$host = inputs.nixpkgs.lib.nixosSystem {
@@ -257,11 +262,10 @@ nixosConfigurations.$host = inputs.nixpkgs.lib.nixosSystem {
 
 ## Using Flake-File
 
-Sometimes we need to an external flakes. Example of use case for this is
-installing some programs that don't have a normal package or the package doesn't
-have all features of a flake. One of the programms that I use a external flake
-for is [Zen Browser](https://zen-browser.app/), broser that I mainly use and
-highly recommend.
+Sometimes we need to use an external flake. An example use case is installing
+programs that don’t have a standard package, or whose packages lack features
+that the flake provides. One program for which I use an external flake is
+[Zen Browser](https://zen-browser.app/).
 
 ```nix
 {inputs, ...}: {
@@ -277,38 +281,33 @@ highly recommend.
 }
 ```
 
-Flake-file allows us to just place `flake-file.inputs.$AnyNameForThisFlake` in
-any module that we want to add this flake's exported properties in our config.\
-Than we can use it anywhere by using `inputs.$AnyNameForThisFlake`. We can than
-import our module normal as we would with any other module. We can allso
-override any part of the flake how we could normally do(eg. set the
-`inputs.nixpkgs.follows`).
+Flake-files allow you to place `flake-file.inputs.$AnyNameForThisFlake` in any
+module. Then you can use this flake’s properties in any of your modules by
+referencing `inputs.$AnyNameForThisFlake`.\
+This also allows you to override any part of the flake in the standard way
+(e.g., set `inputs.nixpkgs.follows`).
 
-Than we need to just remember to run: `sudo nix run .#write-flake` before we
-rebuild our config, to add any newly added flakes to our source
-flake(`./flake.nix`). I've myself added this command to run always when I
-rebuild my config, so I don't forget about it.
+You also need to remember to run: `sudo nix run .#write-flake` before rebuilding
+your configuration. This adds any newly added flakes to your source flake
+(`./flake.nix`). I personally run this command every time I rebuild my config so
+I don’t forget.
 
 ## Home Manager Modules
 
-If you don't yet know what
-[Home-Manager](https://github.com/nix-community/home-manager) is, you hosestly
-need to change it right now. Home-Manager is in my opinion the bes nixos
-'extension'. It allows you to relayably manage your dotfiles that configure all
-of your programs.
-[Vimjoyer's video about Home-Manager](https://www.youtube.com/watch?v=a67Sv4Mbxmc)
+[Home Manager](https://github.com/nix-community/home-manager) allows you to
+reliably manage your dotfiles that configure all of your programs. See
+[Vimjoyer’s video about Home Manager](https://www.youtube.com/watch?v=a67Sv4Mbxmc).
 
-We can define home manage modules the same as we define NixOS modules with
-flake-parts. `flake.homeModules.name` I personally like split home-manager
-modules into just 2 types.
+We can define Home Manager modules the same way we define NixOS modules using
+flake-parts: `flake.homeModules.name`. I personally like to split Home Manager
+modules into two types:
 
-- General - needed on all of the machines: `flake.homeModules.general`
-- Machine specific - needed on a specific machine `flake.homeModules.$host`
+- **General** – needed on all of my machines: `flake.homeModules.general`
+- **Machine-specific** – needed on a specific machine: `flake.homeModules.$host`
 
-They will than all merge into one module that I can import inside my config, so
-that I have only like 3 home manager modules(for me: desktop, laptop, general)
-
-Here is an example home manager flake:
+These modules automatically merge the contents of all files that have the
+corresponding module type name. For example, I have only three Home Manager
+modules: `desktop`, `laptop`, and `general`.
 
 ```nix
 {
@@ -330,7 +329,7 @@ Here is an example home manager flake:
 
 ### Making Home Manager Work
 
-Now we need to change our $host module
+Now you need to change your `$host` module
 
 ```nix
 ### ./modules/host/$host/$host.nix
@@ -378,34 +377,79 @@ Now we need to change our $host module
 }
 ```
 
-This will import the home-manager flake and set it up so that it imports all the
-home-manager modules.
+This will import the Home Manager flake and set it up in a way that imports all
+the Home Manager modules.
 
 ## Actually Using This Config
 
-I really like having one command to do many things at once. So I've setup
-commands for updating my OS. This is really nice, I just rune this command once
-a week and I'm suere that eaverything on my pc is up to date and I don't have to
-worry about auto updated(Looking at you Macroslop).
+I really like having one command that does many things at once. Thats why I've
+set up commands for updating my OS. This is very convenient - I just run one
+command once a week and I can be sure that everything on my PC is up to date,
+without having to worry about auto-updates (looking at you, Macroslop).
 
-- rebuild - quick rebuild of my config. usefull when testing new config /
-  installing new app.
+1. `rebuild` – quickly rebuilds my configuration. Useful when testing new
+   settings or installing a new application.
 
-TODO: Rephrase this:
+2. `updateNix`
+   - Sources the newest NixOS configuration for my machine, with the packages
+     from the unstable branch.
+   - Pulls any new git commits from the GitHub.
+   - Removes old packages for backup system versions using
+     `nix-collect-garbage`.
+   - Runs any commands inside `/etc/nixos/onUpdate.sh` (useful for auto running
+     tasks like updating Docker containers or performing other non-Nix tasks).
 
-- updateNix - updates all things on my machine, also removes old packages for
-  backup system versions with: `nix-collect-garbage`, also runs any commands
-  that I put inside `/etc/nixos/onUpdate.sh`( usefull for things like updating
-  docker containers or doing other not nix related things).
+To make my update commands work on all of my machines, I put the hostname inside
+`/etc/nixos/host.txt` so that my scripts can read it.
 
-To make my update commands work on all of my machines, I put my host name inside
-`/etc/nixos/host.txt` so that my commands may read it.
+I use the
+[unstable branch of NixOS](https://wiki.nixos.org/wiki/Channel_branches). The
+main difference between the unstable and stable branches is that the unstable
+branch follows a rolling release model. This means you don’t specify which
+version of NixOS you are using — you always use the newest one. I prefer this
+because I don’t want to worry about any NixOS versionning bullshit. When I run
+the `updateNix` command, I want to always get the newest version of all programs
+on my computer.
 
 ```nix
-# for fish shell
+# for the fish shell
 onUpdate = "sudo /etc/nixos/onUpdate.sh";
 readHost = "set -g host (cat /etc/nixos/host.txt)";
 rebuild = "readHost ; cd /etc/nixos/NNC/ ; sudo nix run .#write-flake ; sudo nixos-rebuild switch --upgrade --flake .#$host";
 updateNix = "cd /etc/nixos/NNC/; git pull ; rebuild ; sudo nix flake update ; flatpak update -y ; onUpdate ; cleanup";
 cleanup = "sudo nix-collect-garbage --delete-older-than 14d";
 ```
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/NNC"
+        data-repo-id="R_kgDOQ3xb7Q"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQ3xb7c4C4CG7"
+        data-mapping="specific"
+        data-term="config strucutre"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

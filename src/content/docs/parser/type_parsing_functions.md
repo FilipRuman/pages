@@ -13,23 +13,23 @@ char** c = ...;
 typedef enum { MODE_A, MODE_B = 5, MODE_C } Mode;
 ```
 
-we need a pretty smart code that will be able to parse those patterns.
+We need a pretty smart code, that will be able to parse those patterns.
 
-## Basic data type parsing
+## Basic Datatype Parsing
 
 ```c
 char c;
 ```
 
-### DataType enum
+### Datatype Enum
 
 We need to implement an enum that will be holding parsed data, let's name it
-'DataType'. It has to be an enum because it will be holding different data types
-like: arrays, pointers, enums, etc.
+'DataType'. It has to be an enum, because it will be holding different data
+types, like: arrays, pointers, enums, etc.
 
 But for now, only give it these types:
 
-- Data-> name and a bool value- if it is unsigned
+- Data-> name and a bool saying whether it is unsigned.
 - Pointer-> Box< DataType >
 
 <details>
@@ -46,20 +46,20 @@ pub enum DataType {
 
 </details>
 
-### parse function
+### Parse Function
 
-#### declaration
+#### Declaration
 
 ```rust
 pub fn parse(parser: &mut Parser) -> Result<DataType>{...}
 ```
 
-#### function
+#### Function
 
-1. Parse current tokens so that it outputs appropriate 'DataType'.
-2. Remember to check for `TokenKind::Unsigned` at the beginning eg.
+1. Parse current tokens, so that it outputs appropriate 'DataType'.
+2. Remember to check, for `TokenKind::Unsigned` at the beginning. For example:
    `unsigned int uint = 16;`
-3. select the right function depending on the kind of the token it encountered
+3. Select the right function depending on the kind of the token it encounters
    next:
    - identifier -> identifier_type();
    - enum -> enum_type();
@@ -102,14 +102,13 @@ pub fn parse(parser: &mut Parser) -> Result<DataType> {
 
 </details>
 
-### Identifier type
+### Identifier Type
 
-This will be a really simple one: It has to output Datatype::Data, and it will
-do it by just taking, current token as an name, and a boolean saying weather it
-is unsigned or not.
+It has to output Datatype::Data. It will do this by just taking the current
+token as a name, and a boolean saying weather it is unsigned or not.
 
-But then we need to check if our data isn't wrapped in pointers, so we need to
-be wrap our data in a DataType::Pointer for each token of kind 'star'.
+Then it will check if our data isn't wrapped in pointers.Just wrap data in a
+DataType::Pointer for each token of kind 'star'.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -131,20 +130,20 @@ fn identifier_type(parser: &mut Parser, unsigned: bool, current: Token) -> Resul
 
 </details>
 
-Now update call to 'identifier_type()' inside 'parse()' and you should be able
-to pares the type form the example. In this tutorial we will be testing this
-later, when we implement variable declaration, but you might test it out right
-now if you want!
+Now update call to the 'identifier_type()' inside the 'parse()'. Now you should
+be able to parse the type from the example. In this tutorial we will be testing
+this later. After implementing variable declaration, but you might test it out
+,right now if you want!
 
-## parsing arrays
+## Parsing Arrays
 
 ```c
 int c[5]= ...;
 ```
 
-### Data type
+### Data Type
 
-We need to add a enum type for it to the `DataType`, it needs to have:
+We need to add an enum type for it to the `DataType`, it needs to have:
 
 - length
 - inside 'DataType'
@@ -167,21 +166,23 @@ pub enum DataType {
 Function to parse an array will not be called by the 'parse' function, this is
 because 'array brackets' come after the name of a variable. Because of this, the
 function will be called by the variable declaration function, so it 'wraps' the
-current data type inside of the Array data type eg.
+current datatype inside of the Array data type.
+
+#### Example
 
 ```c
 int c[1][2]
 ```
 
-into
+Will be converted into:
 
 ```rust
 DataType::Array{ length:1, inside: Box{DataType::Array{length:2,inside:Box{DataType::Data{name:"int",unsigned:false}}}}
 ```
 
-### Implementing 'wrap_data_type_in_an_array' function
+### Wrap_Data_Type_in_an_Array
 
-#### declaration
+#### Declaration
 
 ```rust
 pub fn wrap_data_type_in_an_array(
@@ -190,10 +191,10 @@ pub fn wrap_data_type_in_an_array(
 ) -> Result<DataType> {
 ```
 
-#### function
+#### Function
 
-wraps data type that it got in arrays of parsed length while the current token
-kind is a open bracket `[`.
+Wraps its input in arrays.It will do this for each `[` token. Remember to read
+the length specified inside of it, and than expect the `]` token.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -221,7 +222,7 @@ pub fn wrap_data_type_in_an_array(
 
 </details>
 
-## parsing struts
+## Parsing Struts
 
 ```c
 typedef struct {
@@ -229,11 +230,11 @@ typedef struct {
 } str1;
 ```
 
-### Data type
+### Data Type
 
 The struct data type just needs to know its properties. We will implement a
-'Property' struct inside the 'expressions.rs' because we will be also using it
-in other places. it needs to have it's name and data type.
+`Property` struct inside the `expressions.rs`, because we will be also using it
+in other places. It needs to know its name and data type.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -244,7 +245,7 @@ use crate::parser::types::DataType,
 #[derive(Debug, Clone)]
 pub struct Property {
     pub var_name: String,
-  pub var_type: DataType,
+    pub var_type: DataType,
 }
 ...
 ```
@@ -269,12 +270,12 @@ pub enum DataType {
 
 ### Parsing
 
-We need to remember to expect all of the curly braces and the struct keyword,
-after that we need to parse the properties. To do this, we just need to:
+We need to expect all the curly braces and the struct keyword. Afterwords we
+need to parse all the properties. To do this:
 
-1. get the data type -> use 'parse()'
-2. get variable name -> read value of the next identifier token
-3. do this until there is no comma afterwards.
+1. Get the datatype -> use 'parse()'
+2. Get variable name -> read value of the next identifier token
+3. Do this until the next character is not a comma.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -304,13 +305,13 @@ fn struct_type(parser: &mut Parser) -> Result<DataType> {
 
 </details>
 
-## parsing enums
+## Parsing Enums
 
 ```c
 typedef enum { MODE_A, MODE_B = 5, MODE_C } Mode;
 ```
 
-### Data type
+### Data Type
 
 First we need to define a new type for the enum fields, because it doesn't match
 the previous types that we used, it needs: value(int) and a name.
@@ -328,7 +329,7 @@ pub enum DataType {
 
 </details>
 
-type inside `DataType`, only needs to store fields.
+Type inside the `DataType`, will only store fields.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -348,9 +349,12 @@ pub enum DataType {
 
 To parse enum we will have to read the name of a field, then check if it has
 some value assigned to it. If the value is set, then it should carry through to
-the next fields, increasing by one.
+the next field increased by one.
 
-:::caution Remember to expect tokens like '{' and '}' at the beginning and end.
+:::caution
+
+Remember to expect tokens like '{' and '}' at the beginning and end.
+
 :::
 
 <details>
@@ -399,7 +403,7 @@ fn enum_type(parser: &mut Parser) -> Result<DataType> {
 
 </details>
 
-## End result
+## End Result
 
 At in the end your `parser/types/mod.rs` file should look like this:
 
@@ -548,17 +552,19 @@ fn struct_type(parser: &mut Parser) -> Result<DataType> {
 
 ---
 
-#### Bug?
+#### Bugs
 
-If you find anything to improve on this site or in this project's code, please
-create an issue describing it on
-[GitHub repo for this project](https://github.com/FilipRuman/RIP/issues).
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
 
 #### Support
 
-This all pages on this site are written by a human and you can see everything
-for free without any ads. If you think that my work is valuable then please
-[give a star to GitHub repo for this project](https://github.com/FilipRuman/RIP)
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
 
 <script src="https://giscus.app/client.js"
         data-repo="FilipRuman/RIP"
@@ -566,7 +572,7 @@ for free without any ads. If you think that my work is valuable then please
         data-category="Announcements"
         data-category-id="DIC_kwDOQNyZns4C4CHN"
         data-mapping="specific"
-        data-term="type parsing functions"
+        data-term="expression parsing functions"
         data-strict="0"
         data-reactions-enabled="1"
         data-emit-metadata="0"

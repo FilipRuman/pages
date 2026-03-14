@@ -3,53 +3,58 @@ title: 2. Quick Installation
 description: Quick Installation
 ---
 
-Ability to quickly and easily install your config is really important for
-obvious reasons. To acomplish this we want to be able to copy configuration,
-remove unnecesery files and create additiona data with as few steps as we can.\
+`The ability to quickly and easily install your configuration is important for
+many reasons. To accomplish this, we want to be able to copy the configuration,
+remove unnecessary files, and create additional data with as few steps as
+possible.
 
-You can also use config straight from github:
-`sudo nixos-rebuild switch --flake github:<owner>/<repo>#<hostname>`. I don't
-recommend this because it makes it harder to modify your config. You would have
-to push a new commit every time you try a new change inside of your
+:::note
+
+You can also use a configuration straight from GitHub:\
+`sudo nixos-rebuild switch --flake github:<owner>/<repo>#<hostname>`
+
+I don’t recommend this because it makes it harder to modify your config. You
+would have to push a new commit every time you try a change inside your
 configuration.
 
-The easiest way to do this will be storing your config on a public github repo.
-This will allow us to clone your config without logging into any account. Also
-than you can just put any commands necessary for installation, inside the
-readme. If you don't want to use GitHub, you may aswell accomplish this easily
-in many other ways.
+:::
 
-First of all we need to ensure that we use right shell. Another thing will be
-specifying hostname, if you have a similar architecture to me- your rebuild
-commands read host name form a file.
+The easiest approach is to store your config on a public GitHub repository. This
+allows us to clone your config without logging into any account. You can also
+include any commands necessary for installation inside the README. If you don’t
+want to use GitHub, there are many other ways to accomplish this.
 
-snippet from my installation process:
+First, we need to ensure that we are using the correct shell. Another
+requirement is specifying the hostname. If your architecture is similar to mine,
+your rebuild commands read the hostname from a file.
+
+Snippet from my installation process:
 
 ```bash
-bash ; export host=<desktop/laptop/server>
+bash
+export host=<desktop/laptop/server>
 ```
 
-next we need to clean any unnecessary files inside of the `/etc/nixos/`. To do
-this we can just do a simple:
+Next, we need to clean any unnecessary files inside `/etc/nixos/`. This can be
+done simply with:
 
 ```bash
 sudo rm -rf /etc/nixos 
 mkdir /etc/nixos/
 ```
 
-Than if you need we can just paste the `$host` data into the
-`/etc/nixos/host.txt` file.
+Then, if needed, we can add the `$host` data to the `/etc/nixos/host.txt` file.
 
-I also need to create a `onUpdate.sh` file, it is needed for running various
-tasks when I update my system.
+I also create an `onUpdate.sh` file, which is used to run various tasks when
+updating the system.
 
-Next thing will be cloning the repo that contains your config. For me it will
-be: `sudo git clone https://github.com/FilipRuman/NNC.git`
+Next, clone the repository that contains your configuration. For me, this is:
+`sudo git clone https://github.com/FilipRuman/NNC.git`
 
-Than we can just switch to the new config
-using:`sudo nixos-rebuild switch --upgrade --flake ".#$host"`
+Finally, switch to the new config using:
+`sudo nixos-rebuild switch --upgrade --flake ".#$host"`
 
-snippet from my installation process:
+Snippet from my installation process:
 
 ```bash
 sudo rm -rf /etc/nixos 
@@ -63,3 +68,37 @@ sudo git clone https://github.com/FilipRuman/NNC.git
 cd ./NNC/ || exit
 sudo nixos-rebuild switch --upgrade --flake ".#$host"
 ```
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/NNC"
+        data-repo-id="R_kgDOQ3xb7Q"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQ3xb7c4C4CG7"
+        data-mapping="specific"
+        data-term="quick installation"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

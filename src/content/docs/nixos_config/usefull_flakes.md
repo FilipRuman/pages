@@ -3,11 +3,12 @@ title: 3. Useful Flakes
 description: Useful Flakes
 ---
 
-## Nix-Flatpak
+## [Nix-Flatpak](https://github.com/gmodena/nix-flatpak)
 
-[Nix-Flatpak](https://github.com/gmodena/nix-flatpak) is a great tool that
-allows us to install flatpaks decleratively. We can just write and import a
-simple module like this:
+> Declarative flatpak manager for NixOS inspired by declarative-flatpak and
+> nix-darwin's homebrew module.
+
+We can just write and import a simple module like this:
 
 ```nix
 {inputs, ...}: {
@@ -33,7 +34,7 @@ simple module like this:
 }
 ```
 
-And than we can just import any flathub package at any place like this.
+And then we can just import any Flathub package at any place like this.
 
 ```nix
 services.flatpak.packages = [
@@ -46,15 +47,13 @@ services.flatpak.packages = [
 
 `services.flatpak.packages` is a list so we can append it at many places and all
 inputs will be merged. You can find IDs of all
-[flathub flatpaks in here](https://flathub.org/en) To update all flatpaks on
+[Flathub Flatpaks in here](https://flathub.org/en).To update all Flatpaks on
 your system run: `flatpak update -y`
 
-## Steam-Config-Nix
+## [Steam-Config-Nix](https://github.com/different-name/steam-config-nix)
 
-[This flake](https://github.com/different-name/steam-config-nix) allows for easy
-management of
-[compatibility tools and launch arguments](https://github.com/different-name/steam-config-nix/blob/master/options.md)
-for steam games.
+> Manage Steam launch options, compat tools and other local config declaratively
+> through your nix config
 
 ```nix
 {inputs, ...}: {
@@ -110,38 +109,72 @@ for steam games.
 }
 ```
 
-## NVF
-
-[as author says](https://github.com/NotAShelf/nvf/tree/main):
+## [NVF](https://github.com/NotAShelf/nvf/tree/main)
 
 > nvf is a highly modular, configurable, extensible and easy to use Neovim
 > configuration in Nix. Designed for flexibility and ease of use, nvf allows you
 > to easily configure your fully featured Neovim instance with a few lines of
 > Nix.
 
-You can check it out by running`nix run github:notashelf/nvf`
+You can check it out by running:\
+`nix run github:notashelf/nvf`
 
-This is the nvim distro that I use myself. I've migrated from using basic nvim
-config with lua to this because of these 2 main resons:
+This is the Neovim distribution I use myself. I migrated from a basic Neovim
+config using Lua to this setup for two main reasons:
 
-- Easy package management - nixos is great with package management and lazy &
-  mason are not.
-- Easy lsp setup - this was especially an issue before nvim added native lsp
-  settings.
+- **Easy package management** – NixOS handles packages very well, whereas Lazy &
+  Mason are a pain in the ass to work with.
+- **Easy LSP setup** – This was especially challenging before Neovim added
+  native LSP support.
 
-Enabling support for almost any lang is as simple as putting this in your nvf
-config:
+Enabling support for almost any language is as simple as adding the following to
+your nvf config:
 
 ```nix
 vim.languages.nix.enable = true;
 ```
 
-If there is no support baked in for any feature you can easily hack it togheder
-by installing a normal nixpkg for it and writing some lua code inside:
+If there is no built-in support for a feature, you can easily add it by
+installing a standard Nix package and writing some Lua code in your config:
 
 ```nix
 vim.luaConfigPre = '' lua code'';
 ```
 
-You can check its documentation [in here](https://nvf.notashelf.dev/). You can
-see my config [in here](https://github.com/FilipRuman/NNC/tree/main/modules/nvf)
+You can check the [NVF documentation here](https://nvf.notashelf.dev/) . You can
+checkout my personal config
+[in here](https://github.com/FilipRuman/NNC/tree/main/modules/nvf)
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/NNC).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/NNC"
+        data-repo-id="R_kgDOQ3xb7Q"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQ3xb7c4C4CG7"
+        data-mapping="specific"
+        data-term="usefull flakes"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

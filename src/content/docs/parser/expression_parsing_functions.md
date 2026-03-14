@@ -3,21 +3,22 @@ title: 5. expression parsing functions
 description: parser
 ---
 
-Now we we will need to implement functions to parse all of the other expressions
-that we need. And we need to add those expressions to our expression enum, and
-also update token stats.
+Now we will implement functions to parse all the other expressions that we need.
+Next we need to add those expressions to our expression enum, and update token
+stats.
 
 ## Implementation
 
 ### Assignment
 
-Will be called when parsing `= += -= *= /=` tokens. It will be used when eg.
+This function will be called when parsing `= += -= *= /=` tokens. For example,
+it will be used when:
 
 ```rust
 a += 52
 ```
 
-It needs to know value, operator and target to assign.
+It needs to know value, operator, and target to assign to.
 
 ```rs
 //parser/parsing_functions/mod.rs
@@ -60,14 +61,16 @@ pub fn increment(parser: &mut Parser, left: Expression, _: i8) -> Result<Express
 
 </details>
 
-### Type conversion
+### Type Conversion
 
-We have already implemented a nod function for a '(' token - grouping
-expression, eg. `2 * (52 - 22)` But in c to convert type of a variable you do:
-`bool z = (bool)1` So to differentiate this we will check if inside of the
-parentheses there is an identifier, and if it's value is inside the
-parser::valid_data_type_names. The type conversion itself has to know it's type
-and value it converts - next expression
+We have already implemented a nod function for a `(` token- grouping expression.
+`2 * (52 - 22)`.
+
+In c to convert type of a variable you write: `bool z = (bool)1`. To
+differentiate this we will check value inside of the parentheses. If it is an
+identifier, and its value is inside of the parser::valid_data_type_names, than
+it is a type conversion. The type conversion itself has to know its type, and
+target it converts ( the next expression).
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -118,7 +121,7 @@ void do_smth(int *to_modify){
 ```
 
 You dereference a pointer by putting a star before a name of a variable.
-dereferencing is a fancy way of saying 'access a value inside a pointer'.
+Dereferencing is a fancy way of saying: 'access a value inside a pointer'.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -138,14 +141,14 @@ pub fn dereference(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-### Access reference
+### Access Reference
 
 ```c
 int a = 25;
 int *ptr = &a;
 ```
 
-basically a reversed dereference
+Basically a reversed dereference
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -171,13 +174,13 @@ pub fn access_reference(parser: &mut Parser) -> Result<Expression> {
 static int count = 0;
 ```
 
-In C, static keyword tells the compiler to store this variable on
+In C static keyword tells the compiler to store this variable on
 [.data/.bss](https://www.geeksforgeeks.org/c/memory-layout-of-c-program/)
 instead of the
 [stack](https://os.phil-opp.com/heap-allocation/#local-and-static-variables).
 ![memory layout c](https://media.geeksforgeeks.org/wp-content/uploads/20250122155858092295/Memory-Layout-of-C-Program.webp)
-It allows you to make value of this variable persist through the life time of
-the program, without using heap.
+It allows you to make value of this variable persist throughout the lifetime of
+a program, without using heap.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -204,8 +207,8 @@ some.thing.to.access = 2;
 
 Required data:
 
-- the thing it accesses - left
-- value - right
+- The thing it accesses - left
+- property- right
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -276,7 +279,7 @@ pub fn string(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-### CompilerData
+### Compiler Data
 
 ```c
 #include "this part also should be included"
@@ -299,15 +302,15 @@ pub fn compiler_data(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-### Open curly
+### Open Curly
 
-In C there are many things that could be wrapped in curly braces, thank fully
-most of them will be parsed by functions called when encountering a keyword
-beforehand eg. `if (...) {if statement contents}` or
+In C, there are many things that could be wrapped in curly braces. Thankfully
+most of them will be parsed beforehand by functions called when encountering a
+keyword. For example: `if (...) {if statement contents}` or
 `int test(){function contents}`. This allows us to only have to think about 2
 cases.
 
-- creating a new 'scope'
+#### Creating a New 'Scope'
 
 ```c
 int test_fn(){
@@ -318,29 +321,26 @@ int test_fn(){
 }
 ```
 
-- initializing a struct
+#### Initializing a Struct
 
 ```c
 myStructure s1 = {13, 'B', "Some text"};
 ```
 
-We will need to first check with which case we are dealing and than call
+This requires checking which case we are dealing with and then calling an
 appropriate function.
 
-#### Scope block
+#### Scope Block
 
-Scope block will just consist of an array of expressions that represent lines
-inside of it.\
-We will be just parsing expressions until we encounter a right curly brace.
+Scope block will just consist of an array of expressions. Those expressions will
+represent lines inside of the block. We will be just parsing expressions until
+we encounter a closing curly brace.
 
-#### Struct initialization
+#### Struct Initialization
 
-To initialize a struct we just need to know values inside the initialization
-that we will be assigning.
-
-This may seem hard at first, but actually is pretty easy, coma has a low binding
-power so parsing expressions, with binding power of 0, in a loop and moving past
-comas will give us needed values.
+This requires reading all values inside of the initialization statement. Comma
+has a low binding power, so parsing expressions with binding power of 0, will
+give us the required values. Just repeat this process, for all the commas.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -401,29 +401,32 @@ pub fn parse_data_structure_initialization(parser: &mut Parser) -> Result<Expres
 
 ### Identifier Token
 
-In rust for example you write let when you declare a variable or fn when you
-declare a function. In c compiler must 'guess' your intention. To accomplish
-this we will use the `parser::valid_data_type_names`.
+In rust you write `let` when you declare a variable, or `fn` when you declare a
+function. In c, compiler must 'guess' your intention. To accomplish this we will
+use the `parser::valid_data_type_names`.
 
-If the value of a token isn't inside of the `parser::valid_data_type_names` we
-will just output an identifier expression with it's value.
+If the value of a token isn't in the `parser::valid_data_type_names`, we simply
+output an identifier expression with its value.
 
-We need to use `types::parse()` to get data type that we will be using for next
-expressions. Than we need to check if the next token is a identifier: a. it is:
-we take it's value as a name for variable/function. b. it isn't: just return a
-'DataTypeAccess' expression with the data type that we parsed before.
+We need to use the `types::parse()` to get the current datatype. It will be used
+for the next expression. Next let's determine whether the next token is an
+identifier:
 
-Than we need to check for array declaration, because in c you put square
-brackets after a variable name: `int array[][] = ...;`. So we use
-`types::wrap_data_type_in_an_array` for this.
+- it is: we take its value as a name for variable/function.
+- it isn't: return a `DataTypeAccess` expression with the previously parsed
+  datatype.
 
-Next we need to check weather we are dealing with a function or variable
-declaration. We can do it by checking if the next token is a '('.
+Next, check for an array declaration. This is needed because in C square
+brackets are placed after a variable name: `int array[][] = ...;`.\
+Use `types::wrap_data_type_in_an_array` for this.
 
-For variable declaration we know everything that we need so we will just return
-expression with variable name and type.
+Next check whether we are dealing with a function or a variable declaration. We
+can do it by checking if the next token is a '('.
 
-Now we need to deal with function declaration:
+For a variable declaration, simply return an expression with a variable name and
+its type.
+
+#### Parsing Function Declarations
 
 ```c
 int* func(int param,char* text){...}
@@ -431,17 +434,20 @@ int* func(int param,char* text){...}
 //this is the part that we have already parsed
 ```
 
-#### Parsing function parameters
+##### Parsing Function Parameters
 
-we will do the same as during parsing the struct declaration, but than we need
-to read value of the next character as a name.
+This is the same as parsing a struct declaration; additionally, use the next
+token as the name.
 
-#### Parsing function contents
+##### Parsing Function Contents
 
-this is the same as when parsing a scope block.
+This is the same as when parsing a scope block. Simply return a function
+expression with:
 
-Than we need to just return a function expression with: name, data type,
-parameters, and contents.
+- Name
+- Datatype
+- Parameters
+- Contents.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -546,7 +552,7 @@ fn handle_function_declaration(
 
 </details>
 
-### If / else
+### If / Else
 
 ```c
 if(condition && !other_thing){
@@ -558,13 +564,16 @@ contents
 }
 ```
 
-It is possible to chain multiple else if-s and every one has it's contents and
-conditions.\
-Also we need to remember to expect all of the parentheses and curly brackets and
-keywords like if and else. To parse conditions we will just use
-parsing_functions::expression with binding power of 0. It should nicely parse
-all of the conditions at once and leave parentheses thanks to the binding power
-of all of the tokens.
+It is possible to chain multiple else if statements. Each of them has its
+contents and conditions. Remember to expect all the:
+
+- Parentheses
+- Curly brackets
+- Keywords (like if and else).
+
+Use `parsing_functions::expression` with a binding power of 0 to parse
+conditions. It should parse all the conditions at once and preserve parentheses,
+thanks to the binding powers of the tokens.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -645,8 +654,8 @@ while (i >25){
 }
 ```
 
-Parsing while loop isn't different from parsing if-s in almost any way. You need
-to read condition and contents.
+Parsing a while loop isn't really that different from parsing an if statement.
+Simply read the condition and contents.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -680,7 +689,7 @@ pub fn parse_while(parser: &mut Parser) -> Result<Expression> {
 
 ### Break
 
-Just return expression with debug data inside and expect token of kind Break.
+Return expression with a debug data inside and expect a `Break` token.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -705,8 +714,8 @@ for(int i =0;i<25;i++){
 }
 ```
 
-To parse for loop we basically need to use `parsing_functions::expression` 3
-times and than parse contents
+Parsing a for loop requires using the `parsing_functions::expression` three
+times (declaration, condition, and incrementation) followed by parsing contents.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -757,9 +766,9 @@ typedef struct {
 } Car;
 ```
 
-Type def tells our compiler that we want to create a new data type with some
-name - push it into `Parser::valid_data_type_names` To parse it we need to parse
-data type and name.
+Typedef statement tells compiler to create a new datatype with a certain name,
+and add it to the `Parser::valid_data_type_names`. Doing this requires parsing
+datatype and name first.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -786,13 +795,16 @@ pub fn type_def(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-### array access
+### Array Access
 
 ```c
 smth = array[x+2];
 ```
 
-We need to know expression that we are accessing, and index.
+Parsing this requires knowledge of:
+
+- Expression that is being accessed.
+- Index.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -814,18 +826,18 @@ pub fn array_access(parser: &mut Parser, left: Expression, _: i8) -> Result<Expr
 
 </details>
 
-### Function call
+### Function Call
 
 ```c
 func_name(i,x/25,car.name.char());
 ```
 
-this will be called by open parentheses.
+This will be called by the open parentheses token.
 
-Needed data:
+Required data:
 
-- expression on the left
-- function parameters
+- Expression on the left.
+- Function parameters.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -885,18 +897,17 @@ pub fn return_expr(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-as you can see implementing a c parser is a pretty easy task but it requires a
+As you can see implementing a c parser is a pretty easy task, but it requires a
 lot of repetitive work.
 
-## Adding token stats
+## Adding Token Stats
 
-Now we need to assign our newly implemented functions to be called by right
-tokens. Look at all tokens in token stats functions inside
-`parser/token_stats.rs` and think which functions seem appropriate to use. If
-you are not sure go back to the part where we were implementing certain function
-and think where it should be used.
+Next, assign newly implemented functions to the correct token stats. Review all
+the token stats and consider which functions are appropriate to use. If you are
+unsure, go back to the part where they were implemented, and think how they
+should be used.
 
-## At the end:
+## At the End:
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -1655,7 +1666,7 @@ pub fn parse_for(parser: &mut Parser) -> Result<Expression> {
 
 </details>
 
-and our token stats should look like this:
+Token stats should look like this:
 
 ```rs
 //parser/token_stats.rs
@@ -2065,17 +2076,19 @@ pub fn token_stats() -> HashMap<TokenKind, TokenStats> {
 
 ---
 
-#### Bug?
+#### Bugs
 
-If you find anything to improve on this site or in this project's code, please
-create an issue describing it on
-[GitHub repo for this project](https://github.com/FilipRuman/RIP/issues).
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
 
 #### Support
 
-This all pages on this site are written by a human and you can see everything
-for free without any ads. If you think that my work is valuable then please
-[give a star to GitHub repo for this project](https://github.com/FilipRuman/RIP)
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
 
 <script src="https://giscus.app/client.js"
         data-repo="FilipRuman/RIP"

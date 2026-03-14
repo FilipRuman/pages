@@ -238,17 +238,19 @@ Example: `HELLO = 72 + 69 + 76 + 76 + 79 = 372`
 
 ---
 
-#### Bug?
+#### Bugs
 
-If you find anything to improve on this site or in this project's code, please
-create an issue describing it on
-[GitHub repo for this project](https://github.com/FilipRuman/RIP/issues).
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
 
 #### Support
 
-This all pages on this site are written by a human and you can see everything
-for free without any ads. If you think that my work is valuable then please
-[give a star to GitHub repo for this project](https://github.com/FilipRuman/RIP)
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
 
 <script src="https://giscus.app/client.js"
         data-repo="FilipRuman/RIP"
@@ -256,7 +258,7 @@ for free without any ads. If you think that my work is valuable then please
         data-category="Announcements"
         data-category-id="DIC_kwDOQNyZns4C4CHN"
         data-mapping="specific"
-        data-term="setup"
+        data-term="expression parsing functions"
         data-strict="0"
         data-reactions-enabled="1"
         data-emit-metadata="0"
