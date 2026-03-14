@@ -2,16 +2,16 @@
 title: 1. setup
 description: setup
 ---
+
 ## 1. Create a Rust Project
-Create a new project using Cargo:
+
+Create a new project using [Cargo](https://github.com/rust-lang/cargo)
+
 ```bash
 cargo init <name>
 ```
 
-:::note[What is cargo?]
-"[Cargo is the Rust package manager. 
-Cargo downloads your Rust package’s dependencies, compiles your packages, makes distributable packages, and uploads them to crates.io](https://doc.rust-lang.org/cargo/)"
-:::
+> Cargo downloads your Rust project’s dependencies and compiles your project.
 
 This gives us a clean Rust project.
 
@@ -19,8 +19,10 @@ This gives us a clean Rust project.
 
 We’ll use two crates:
 
-* [log](https://docs.rs/log/latest/log/) — provides structured logging macros (info!, warn!, error!, etc.)
-* [colog](https://docs.rs/colog/latest/colog/) — configures logging automatically and adds colored output
+- [Log](https://docs.rs/log/latest/log/) — provides structured logging macros
+  (info!, warn!, error!, etc.)
+- [Colog](https://docs.rs/colog/latest/colog/) — configures logging
+  automatically and adds colored output
 
 Add both crates:
 
@@ -28,12 +30,13 @@ Add both crates:
 cargo add log colog
 ```
 
-Why logging?
-As we build the lexer and parser, it’s extremely helpful to print structured debug information.
-Especially when writing error-prone code- like working with text.
-Colored logs make it even easier to understand what’s happening.
+Why logging? As we build the lexer and parser, it’s extremely helpful to print
+structured debug information. Especially when writing error-prone code- like
+working with text. Colored logs make it even easier to understand what’s
+happening.
 
 Add this example:
+
 ```rs
 // main.rs
 fn main() {
@@ -45,8 +48,7 @@ fn main() {
 }
 ```
 
-
-Run the program:
+Than to run:
 
 ```bash
 cargo run
@@ -54,30 +56,37 @@ cargo run
 
 You should see nicely formatted, colored log output.
 
-## 3. Add easier error handling with anyhow
-Next, add the [anyhow](https://docs.rs/anyhow/latest/anyhow/)
+## 3. Add Easier Error Handling with Anyhow
 
-crate:
+Next, add [anyhow](https://docs.rs/anyhow/latest/anyhow/)
+
 ```bash
 cargo add anyhow
 ```
 
-What is anyhow?
-Anyhow makes adding great debug messages in code really simple. 
-It allows us to eg. add context to an error and propagate it further. This is possible thanks to the Rust's [result type](https://doc.rust-lang.org/std/result/).
+What is anyhow? Anyhow makes adding great debug messages in code really simple.
+For example, it allows us to add context to an error and propagate it further.
+This is possible thanks to the Rust's
+[result type](https://doc.rust-lang.org/std/result/).
 
-This pattern will be extremely useful once we start parsing and want readable error messages.
+This pattern will be extremely useful once we start parsing and want readable
+error messages.
 
 Example:
-``` rust
+
+```rust
 use anyhow::{Context, Result, bail};
-// Result<T,E> T- value, in this instance nothing. E- error value - by importing anyhow::Result i don't have to specify type - it is anyhow::Error
+// Result<T,E> T- value, in this instance nothing.
+// E- error value - by importing anyhow::Result 
+// I don't have to specify type - it is anyhow::Error
+
 fn do_smth() -> Result<()> {
     // u16 - 16 bit unsigned integer
     let x:u16 = 9;
     let y = 10;
 
-    // with_context allows us to add context that is evaluated lazily- only once an error does occur.
+    // with_context allows us to add context
+    // that is evaluated lazily - only once an error does occur.
     // and then use ? to propagate the error.
     let w: u16 = calculate_w(x,y).with_context(|| {
         format!(
@@ -97,16 +106,20 @@ fn calculate_w(x: u16, y: u16) -> Result<u16> {
     // what ? does in rust:
     // result type: Err- immediately returns function with this error result.
     // result type: OK- just 'unwraps' value and move on and run next piece of code.
-    let n: u16 = calculate_n().context("calculate_n - this often means... . you should create issue on github with information from this log.")?;
+    let n: u16 = calculate_n().context("calculate_n - this often means that you should create issue on github with information from this log.")?;
     Ok(x / y * n)
 }
 fn calculate_n() -> Result<u16> {
     todo!()
 }
 ```
+
 ## Reading from a File
-### create a test file
-Create a simple text file anywhere in your project for testing file I/O—this will be our lexer’s input later.
+
+### Create a Test File
+
+Create a simple text file anywhere in your project for testing file IO. Later we
+will use it as an input for our parser.
 
 ```c
 unsigned int test = 32;
@@ -179,21 +192,29 @@ int main() {
   return c;
 }
 ```
+
 ### Reading the File
 
 :::caution
-Loading whole file at once might be a problem when working with large files.
-But modern systems have so much memory that for our purposes this won't be a problem.
-If you want you might implement it differently. This should be fairly simple.
+
+Loading whole file at once might cause problems when you work with large files.
+But modern systems have so much memory that for our purposes this won't be an
+issue. If you want you might implement it differently, this should be fairly
+simple.
+
 :::
 
 Reading a file in rust is as simple as:
+
 ```rs
 std::fs::read_to_string(path)?
 ```
-This gives one big string.
-But a [vec](https://doc.rust-lang.org/std/vec/struct.Vec.html) of characters is easier to work with than raw UTF-8 bytes for our purposes. 
-This is because the lexer will be checking char by char and sometimes peeking 1 char ahead.
+
+This gives one big string. But a
+[vec](https://doc.rust-lang.org/std/vec/struct.Vec.html) of characters is easier
+to work with than raw UTF-8 bytes for our purposes. This is because the lexer
+will be checking char by char and sometimes peeking 1 char ahead.
+
 ```rust
 // there are at least 5 ways to represent string in rust: https://doc.rust-lang.org/std/string/struct.String.html
 let path: &str = "path/to/a/file"; 
@@ -201,15 +222,50 @@ let file: String  = std::fs::read_to_string(path)?;
 let chars: Vec<char> = file.chars() // returns iterator, it could be nice but normal vector is more flexible;
                             .collect::<Vec<char>>(); // converts iterator into a vec
 ```
+
 ## Practice Tasks (Recommended)
 
-If you’re new to Rust, try these small exercises. They will strengthen your understanding of string manipulation which is  crucial for writing a lexer.
+If you’re new to Rust, try these small exercises. They will strengthen your
+understanding of string manipulation which is crucial for writing a lexer.
 
-#### Split a file into Vec<String> where each element is a line
+#### Split a File into Vec<String> Where Each Element Is a Line
 
-#### Read 15 characters at a time
+#### Read 15 Characters at a Time
 
-#### Sort 15-character segments by their total character code sum
-Example:
-``HELLO = 72 + 69 + 76 + 76 + 79 = 372``
+#### Sort 15-Character Segments by Their Total Character Code Sum
 
+Example: `HELLO = 72 + 69 + 76 + 76 + 79 = 372`
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/RIP"
+        data-repo-id="R_kgDOQNyZng"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQNyZns4C4CHN"
+        data-mapping="specific"
+        data-term="expression parsing functions"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

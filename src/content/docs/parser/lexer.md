@@ -3,12 +3,15 @@ title: 2. lexer
 description: lexer
 ---
 
-## What is a lexer?
-A **lexer** (or tokenizer) is the first stage of a compiler.  
-Its job is simple: it reads raw text from a file and converts it into **tokens**, which are the atomic units a parser can understand.
+## What Is a Lexer?
+
+A **lexer** (or tokenizer) is the first stage of a compiler.\
+Its job is simple: read raw text from a file and convert it into **tokens**.
+Token -> atomic unit that a parser can understand.
 
 Example:
-```
+
+```rust
 Input:
     int x = 10 + 20;
 
@@ -24,8 +27,8 @@ Output tokens:
 
 ## Implementation
 
-Let's start by creating a parse function that will load our file and use the lexer to convert it into tokens.
-
+Let's start by creating a parse function that will load our file and use the
+lexer to convert it into tokens.
 
 ```rust
 //main.rs
@@ -61,13 +64,12 @@ fn tokenize_file(path: &str) -> Result<Vec<Token>> {
 }
 ```
 
-
-
 Now let's create a separate directory with code for our lexer:
 
-In Rust, ``mod.rs`` files allow you to link other code in that directory.
-You just need to import those files in mod.rs file and then import this directory.
+In Rust, `mod.rs` files allow you to link other code in that directory. You just
+need to import those files in mod.rs file and then import this directory.
 :::tip[Example]
+
 ```
 my_library/
 ├── src/
@@ -79,6 +81,7 @@ my_library/
 │   │   └── geometry.rs
 ├── Cargo.toml
 ```
+
 ```rs
 //lib.rs
 pub mod utils;
@@ -87,27 +90,31 @@ pub mod math;
 pub use math::arithmetic::add; // Re-export for convenience
 pub use math::geometry::calculate_area;
 ```
+
 :::
 
+## Lexer Struct
 
+We need to create a struct that will be used to read characters from a string
+and convert them into tokens.
 
-## Lexer struct
-We need to create a struct that we will use to read characters from our text and convert them into tokens.
+### Variables
 
-#### Variables 
-* contents of file as characters
-* the current character index.
-#### functions
-* reading current char
-* reading next char
-* advancing current character index
-* expect function- takes expected character and if current character is not the same it will return error result. Otherwise returns OK with current char
+- Contents of file as characters
+- Current character index.
+
+### Functions
+
+- Reading current char
+- Reading next char
+- Advancing current character index
+- Expect function- takes expected character and if current character is not the
+  same it will return error result. Otherwise, returns OK with current char
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-
-```rust 
+```rust
 //lexer/mod.rs
 
 pub mod token;
@@ -156,13 +163,12 @@ impl Lexer {
 }
 ```
 
-
 </details>
 
-Now let's create a 'tokenize' function that will initialize the lexer with contents of a file and output tokens after running some code that we will implement later.
+Now let's create a 'tokenize' function that will initialize the lexer with
+contents of a file and output tokens.
 
-
-``` rust
+```rust
 //lexer/mod.rs
 
 
@@ -180,18 +186,21 @@ pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
 ```
 
 ## Token Struct
-Properties:
-* value: String
-* kind: TokenKind
-* line: u16
 
-#### Token Kind 
-Simple enum that will be really helpful in the future.
-It will contain all token types that we need, like: GreaterEquals, Not, Number, String, True, ...
+Properties:
+
+- value: String
+- kind: TokenKind
+- line: u16
+
+### Token Kind
+
+Simple enum that will be really helpful in the future. It will contain all token
+types that we need, like: GreaterEquals, Not, Number, String, True, ...
 
 **For list of all token kinds look at the code down below**
 
-``` rust
+```rust
 //lexer/token.rs
 // allows this struct to be easily printed with {:?}. + can use .clone() 
 #[derive(Debug, Clone)]
@@ -278,51 +287,59 @@ pub enum TokenKind {
 }
 ```
 
-
-## Converting set of characters into tokens
+## Converting Set of Characters into Tokens
 
 The plan is to do this in loop:
-1. source current and next character
-2. find right function to use on them
-3. call this function
-4. collect token from function output
-5. repeat
 
-This allows us to worry about implementing functions that actually convert characters into tokens later.
-We will be utilizing HashMap for this, so it should be pretty fast. 
+1. Source current and next character
+2. Find right function to use on them
+3. Call this function
+4. Collect token from function output
+5. Repeat
 
+This allows us to worry about implementing functions that actually convert
+characters into tokens later. We will be utilizing a hashmap for this, so it
+should be pretty fast.
 
-## Finding right function to use on set of characters
-Most of the time we can figure out right function by just looking at 2 characters.
+## Finding Right Function to Use on Set of Characters
 
-#### EXAMPLE
+Most of the time we can find the right function, by just looking at 2 first
+characters.
 
-|1'st|2'nd| Output token kind|
-|----|----|-----------------|
-| '+'| '=' |PlusEquals| 
-| '+'  | ' '  | Plus |
-| '-'  | ' '  | Minus|
-| '0..9'  | ' '  | Number |
-| '/'  | '/'  | Comment |
-| '&'  | '&'  | And |
+### EXAMPLE
 
+| 1'st   | 2'nd | Output token kind |
+| ------ | ---- | ----------------- |
+| '+'    | '='  | PlusEquals        |
+| '+'    | ' '  | Plus              |
+| '-'    | ' '  | Minus             |
+| '0..9' | ' '  | Number            |
+| '/'    | '/'  | Comment           |
+| '&'    | '&'  | And               |
 
 ## Implementation
-We will be using 'HashMap'-s that will do all of the searching for us.
-So let's store them inside 'Lexer' struct.
+
+We will be using hashmaps that will do all the searching for us. We will store
+them inside the 'Lexer' struct.
 
 We need:
-* **token_patterns** -> takes 2 characters and returns 'TokenPattern' enum that we will implement later.
-* **keywords** -> takes string and returns 'TokenKind'. this will be needed for more complex tokens.
-##### EXAMPLE: else, break, struct, int, true
 
-* **valid_identifier_token_chars** -> 'HashSet' of valid characters for identifier tokens. 
-* **valid_number_token_char** -> 'HashSet' of valid characters for number tokens.
+- **token_patterns** -> takes 2 characters and returns 'TokenPattern' enum that
+  we will implement later.
+- **keywords** -> takes string and returns a 'TokenKind'. This will be needed
+  for more complex tokens.
+
+### EXAMPLE: Else, Break, Struct, Int, True
+
+- **valid_identifier_token_chars** -> 'HashSet' of valid characters for
+  identifier tokens.
+- **valid_number_token_char** -> 'HashSet' of valid characters for number
+  tokens.
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //lexer/mod.rs
 
 pub struct Lexer {
@@ -337,17 +354,23 @@ pub struct Lexer {
 
 </details>
 
-## Token patterns
-'TokenPattern' will be an enum that will allow us to, both use 'complex' functions or just simply return needed token kind.
-To accomplish this we will use two types of patterns:
-* Fast — single or double-character tokens (e.g., +, +=)
-* Long — tokens that require scanning multiple characters (numbers, identifiers, strings, comments)
+## Token Patterns
 
-We also need to initialize 'token_patterns' inside the 'Lexer' struct.
-There are more complex patterns like: string, identifier, number, that can start with more than 1 character.
-This means that we would have to insert those patterns for each character that it should work with.
-So to improve it we also need 'TokenPatternInitialization' struct:  
-``` rust
+'TokenPattern' will be an enum, that will allow us to, both use 'complex'
+functions or just simply return the needed token kind. To accomplish this we
+will use two types of patterns:
+
+- Fast — single or double-character tokens (e.g., +, +=)
+- Long — tokens that require scanning multiple characters (numbers, identifiers,
+  strings, comments)
+
+We also need to initialize 'token_patterns' inside the 'Lexer' struct. There are
+more complex patterns like: string, identifier, number. They can start with more
+than 1 character. This means that we have to insert those patterns for each
+character that it should work with. So to improve it we also need the
+'TokenPatternInitialization' struct:
+
+```rust
 //lexer/patterns.rs
 
 use crate::lexer::{
@@ -374,10 +397,9 @@ struct TokenPatternInitialization {
 
 ## Initializing Token Patterns
 
-Create a 'patterns' function.
-It will return pattern initializations.
+Create a 'patterns' function. It will return pattern initializations.
 
-``` rust
+```rust
 //lexer/patterns.rs
 
 fn patterns() -> Vec<TokenPatternInitialization> {
@@ -420,27 +442,30 @@ fn patterns() -> Vec<TokenPatternInitialization> {
 }
 ```
 
-You might want to implement rest of it by yourself.
-But for now leave : comments, strings, numbers, identifiers.
-We will handle them with more complex functions.  
+You might want to implement rest of it by yourself. But for now leave :
+comments, strings, numbers, identifiers. We will handle them with more complex
+functions.
 
-But if you don't want to write rest of tokens by hand, you can just copy code that will be written later. 
+But if you don't want to write rest of tokens by hand, you can just copy code
+that will be written later.
 
+## Working with More Complex Patterns
 
-## Working with more complex patterns
-Now we will be creating functions of type that we used in 'TokenPattern'.  
-```rust 
+Now we will be creating functions of type that we used in 'TokenPattern'.
+
+```rust
 type TokenizationFunc = fn(u16, &mut Lexer) -> Result<Token>;
 ```
 
 ### Number
 
-It will collect all characters until it encounters one that is not inside 'Lexer::valid_number_token_chars'
+It will collect all characters until it encounters one that is not inside of the
+'Lexer::valid_number_token_chars'
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //lexer/tokenization_functions.rs
 
 use crate::lexer::{
@@ -467,14 +492,13 @@ pub fn handle_number(line: u16, lexer: &mut Lexer) -> Result<Token> {
 
 ### String
 
-* expect to find '"' at the beginning
-* collect all characters until it hits '"' 
+- Expect to find '"' at the beginning
+- Collect all characters until it hits the '"'
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-
-``` rust
+```rust
 //lexer/tokenization_functions.rs
 
 pub fn handle_string(line: u16, lexer: &mut Lexer) -> Result<Token> {
@@ -496,14 +520,15 @@ pub fn handle_string(line: u16, lexer: &mut Lexer) -> Result<Token> {
 
 </details>
 
+### Compiler_Data
 
-### compiler_data
-* expect to find '#' at the beginning
-* collect all characters until it hits next line - '\n' 
+- Expect to find '#' at the beginning
+- Collect all characters until it hits next line - '\n'
+
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //lexer/tokenization_functions.rs
 
 pub fn handle_compiler_data(line: u16, lexer: &mut Lexer) -> Result<Token> {
@@ -525,13 +550,14 @@ pub fn handle_compiler_data(line: u16, lexer: &mut Lexer) -> Result<Token> {
 </details>
 
 ### Comment
-* expect to find two '/' at the beginning
-* collect all characters until it hits next line - '\n' 
+
+- Expect to find two '/' at the beginning
+- Collect all characters until it hits next line - '\n'
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //lexer/tokenization_functions.rs
 
 pub fn handle_comments(line: u16, lexer: &mut Lexer) -> Result<Token> {
@@ -554,13 +580,16 @@ pub fn handle_comments(line: u16, lexer: &mut Lexer) -> Result<Token> {
 </details>
 
 ### Identifier
-0. Collects all characters until it encounter's one that is not inside 'valid_identifier_token_chars'
-1. At the end check value that it has read, if it is a keyword with lexer.keywords eg.else,break,struct... 
+
+0. Collects all characters until it encounter's one that is not inside of the
+   'valid_identifier_token_chars'
+1. At the end, check value that it has read is a keyword specified inside of the
+   lexer.Keyword examples:else, break, struct
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //lexer/tokenization_functions.rs
 
 pub fn handle_identifier(line: u16, lexer: &mut Lexer) -> Result<Token> {
@@ -589,12 +618,11 @@ pub fn handle_identifier(line: u16, lexer: &mut Lexer) -> Result<Token> {
 
 </details>
 
-
-## Using new functions
+## Using New Functions
 
 Now we nee to initialize all patterns:
 
-``` rust
+```rust
 //lexer/patterns.rs
 
 ...
@@ -951,7 +979,9 @@ fn patterns() -> Vec<TokenPatternInitialization> {
 }
 ```
 
-'TokenPatternInitialization' it self doesn't do anything. We need to use it to create HashMap that we will actually use:
+'TokenPatternInitialization' by itself doesn't do anything. We need to use it to
+create a hashmap that we will actually use:
+
 ```rust
 HashMap<(char, char), TokenPattern>
 ```
@@ -959,7 +989,7 @@ HashMap<(char, char), TokenPattern>
 <details>
 <summary> ⚠️ Implementation  </summary>
 
-``` rust
+```rust
 //lexer/patterns.rs
 
 pub fn setup_token_patterns() -> Result<HashMap<(char, char), TokenPattern>> {
@@ -989,16 +1019,19 @@ pub fn setup_token_patterns() -> Result<HashMap<(char, char), TokenPattern>> {
 
 </details>
 
-Now we need a function that will actually use our handy HashMap from Lexer.
-```rust 
+Now we need a function that will actually use our handy hashmap from the lexer.
+
+```rust
 fn pattern_for_current_char(lexer: &mut Lexer) -> Option<TokenPattern>
 ```
-It will get needed characters form lexer and output 'TokenPattern' that we will need to use later. 
+
+It will get needed characters form lexer and output 'TokenPattern' that we will
+need later.
 
 <details>
 <summary> ⚠️ Implementation  </summary>
 
-``` rust
+```rust
 //lexer/patterns.rs
 
 ///INFO: Uses Lexer to get current and next char and get right function for parsing value that starts
@@ -1016,6 +1049,7 @@ pub fn pattern_for_current_char(lexer: &mut Lexer) -> Option<TokenPattern> {
     }
 }
 ```
+
 </details>
 
 ### Finishing
@@ -1067,27 +1101,30 @@ pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
     ...
 ```
 
-## Using 'pattern_for_current_char'
+## Using 'Pattern_for_Current_Char'
 
-Now we just call pattern_for_current_char until we read thru all characters.
-When we get a valid pattern we need to check whether it's type is long or fast.
+Now we just call pattern_for_current_char until we read through all characters.
+When we get a valid pattern, we need to check whether it's type is 'long' or
+'fast'.
 
-### Long 
-* call a function stored in this pattern enum
-* use ? and .context("some information") on result
-* push the Token into some kind of output vector.
+### Long
+
+- Call a function stored in this pattern enum
+- Use ? and .context("some information") on result
+- Push the Token into some kind of output vector.
+
 ### Fast
-* If the kind == TokenKind::NextLine we advance current line counter
-* Create Token struct with:
-    - String::new() as value
-    - line set as current line counter
-    - kind set to the kind form pattern enum
 
+- If (kind == TokenKind::NextLine) we advance current line counter
+- Create Token struct with:
+  - String::new() as value
+  - Line set as current line counter
+  - Kind set to the kind from pattern enum
 
 <details>
 <summary> ⚠️ Implementation  </summary>
 
-``` rust
+```rust
 //lexer/mod.rs
 
 pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
@@ -1128,11 +1165,46 @@ pub fn tokenize(text: Vec<char>) -> Result<Vec<Token>> {
                 .context("while running a token pattern function")?,
         });
     }
-
 ```
 
 </details>
 
 ## Testing
-Now we should be able to test everything by just running our program with `cargo run`.
-Then look at the output in the console and see if the output tokens are right.
+
+Now we should be able to test everything by just running our program with
+`cargo run`. Then look at the output in the console and see if the output tokens
+are right.
+
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/RIP"
+        data-repo-id="R_kgDOQNyZng"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQNyZns4C4CHN"
+        data-mapping="specific"
+        data-term="expression parsing functions"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>

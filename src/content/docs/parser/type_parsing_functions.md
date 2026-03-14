@@ -1,5 +1,5 @@
 ---
-title: 4. data type parsing functions 
+title: 4. data type parsing functions
 description: parser
 ---
 
@@ -13,25 +13,29 @@ char** c = ...;
 typedef enum { MODE_A, MODE_B = 5, MODE_C } Mode;
 ```
 
-we need a pretty smart code that will be able to parse those patterns.
+We need a pretty smart code, that will be able to parse those patterns.
 
-## Basic data type parsing
-```c 
+## Basic Datatype Parsing
+
+```c
 char c;
 ```
-### DataType enum
-We need to implement an enum that will be holding parsed data, let's name it 'DataType'.
-It has to be an enum because it will be holding different data types like: arrays, pointers, enums, etc.
+
+### Datatype Enum
+
+We need to implement an enum that will be holding parsed data, let's name it
+'DataType'. It has to be an enum, because it will be holding different data
+types, like: arrays, pointers, enums, etc.
 
 But for now, only give it these types:
-* Data->  name and a bool value- if it is unsigned
-* Pointer-> Box< DataType >
 
+- Data-> name and a bool saying whether it is unsigned.
+- Pointer-> Box< DataType >
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rs
+```rs
 //parser/types/mod.rs
 #[derive(Debug, Clone)]
 pub enum DataType {
@@ -42,25 +46,31 @@ pub enum DataType {
 
 </details>
 
-### parse function
-#### declaration
-``` rust
+### Parse Function
+
+#### Declaration
+
+```rust
 pub fn parse(parser: &mut Parser) -> Result<DataType>{...}
 ```
-#### function  
 
-1. Parse current tokens so that it outputs appropriate 'DataType'.
-2. Remember to check for `TokenKind::Unsigned` at the beginning eg. `unsigned int uint = 16;`
-3. select the right function depending on the kind of the token it encountered next:
-    * identifier -> identifier_type();
-    * enum -> enum_type();
-    * struct -> struct_type();
-4. Their functions will output  `Result<DataType>`, so we will just output them straight after adding some context.
+#### Function
+
+1. Parse current tokens, so that it outputs appropriate 'DataType'.
+2. Remember to check, for `TokenKind::Unsigned` at the beginning. For example:
+   `unsigned int uint = 16;`
+3. Select the right function depending on the kind of the token it encounters
+   next:
+   - identifier -> identifier_type();
+   - enum -> enum_type();
+   - struct -> struct_type();
+4. Their functions will output `Result<DataType>`, so we will just output them
+   straight after adding some context.
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 //parser/types/mod.rs
 pub fn parse(parser: &mut Parser) -> Result<DataType> {
     let unsigned = {
@@ -92,17 +102,18 @@ pub fn parse(parser: &mut Parser) -> Result<DataType> {
 
 </details>
 
-###  Identifier type
+### Identifier Type
 
-This will be a really simple one: 
-It has to output Datatype::Data, and it will do it by just taking, current token as an name, and a boolean saying weather it is unsigned or not.
+It has to output Datatype::Data. It will do this by just taking the current
+token as a name, and a boolean saying weather it is unsigned or not.
 
-But then we need to check if our data isn't wrapped in pointers, so we need to be wrap our data in a DataType::Pointer for each token of kind 'star'.   
+Then it will check if our data isn't wrapped in pointers.Just wrap data in a
+DataType::Pointer for each token of kind 'star'.
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 ///parser/types/mod.rs
 fn identifier_type(parser: &mut Parser, unsigned: bool, current: Token) -> Result<DataType> {
     let mut output = DataType::Data {
@@ -119,24 +130,28 @@ fn identifier_type(parser: &mut Parser, unsigned: bool, current: Token) -> Resul
 
 </details>
 
-Now update call to 'identifier_type()' inside 'parse()' and you should be able to pares the type form the example.
-In this tutorial we will be testing this later, when we implement variable declaration, but you might test it out right now if you want! 
+Now update call to the 'identifier_type()' inside the 'parse()'. Now you should
+be able to parse the type from the example. In this tutorial we will be testing
+this later. After implementing variable declaration, but you might test it out
+,right now if you want!
 
-##  parsing arrays
+## Parsing Arrays
 
-```c 
+```c
 int c[5]= ...;
 ```
 
-### Data type 
-We need to add a enum type for it to the `DataType`, it needs to have:
-* length
-* inside 'DataType'
+### Data Type
+
+We need to add an enum type for it to the `DataType`, it needs to have:
+
+- length
+- inside 'DataType'
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rs
+```rs
 //parser/types/mod.rs
 pub enum DataType {
     ...
@@ -146,30 +161,40 @@ pub enum DataType {
 
 </details>
 
+### Parsing
 
-### Parsing 
+Function to parse an array will not be called by the 'parse' function, this is
+because 'array brackets' come after the name of a variable. Because of this, the
+function will be called by the variable declaration function, so it 'wraps' the
+current datatype inside of the Array data type.
 
-Function to parse an array will not be called by the 'parse' function, this is because 'array brackets' come after the name of a variable.
-Because of this, the function will be called by the variable declaration function, so it 'wraps' the current data type inside of the Array data type eg.
-``` c
+#### Example
+
+```c
 int c[1][2]
 ```
-into
+
+Will be converted into:
+
 ```rust
 DataType::Array{ length:1, inside: Box{DataType::Array{length:2,inside:Box{DataType::Data{name:"int",unsigned:false}}}}
 ```
 
-###  Implementing 'wrap_data_type_in_an_array' function 
-#### declaration
-```rust 
+### Wrap_Data_Type_in_an_Array
+
+#### Declaration
+
+```rust
 pub fn wrap_data_type_in_an_array(
     mut data_type: DataType,
     parser: &mut Parser,
 ) -> Result<DataType> {
 ```
 
-#### function
-wraps data type that it got in arrays of parsed length while the current token kind is a open bracket `[`. 
+#### Function
+
+Wraps its input in arrays.It will do this for each `[` token. Remember to read
+the length specified inside of it, and than expect the `]` token.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -197,20 +222,19 @@ pub fn wrap_data_type_in_an_array(
 
 </details>
 
+## Parsing Struts
 
-##  parsing struts
-```c 
+```c
 typedef struct {
     int a;
 } str1;
 ```
 
+### Data Type
 
-### Data type 
-
-The struct data type just needs to know its properties. 
-We will implement a 'Property' struct inside the 'expressions.rs' because we will be also using it in other places. it needs to have it's name and data type.
-
+The struct data type just needs to know its properties. We will implement a
+`Property` struct inside the `expressions.rs`, because we will be also using it
+in other places. It needs to know its name and data type.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -221,13 +245,13 @@ use crate::parser::types::DataType,
 #[derive(Debug, Clone)]
 pub struct Property {
     pub var_name: String,
-  pub var_type: DataType,
+    pub var_type: DataType,
 }
 ...
 ```
 
 </details>
- 
+
 DataType::Struct
 
 <details>
@@ -240,19 +264,18 @@ pub enum DataType {
     Struct { properties: Vec<Property> },
     ...
 }
-``` 
+```
 
 </details>
 
+### Parsing
 
-### Parsing 
+We need to expect all the curly braces and the struct keyword. Afterwords we
+need to parse all the properties. To do this:
 
-We need to remember to expect all of the curly braces and the struct keyword, after that we need to parse the properties.
-To do this, we just need to: 
-1. get the data type -> use 'parse()'
-2. get variable name -> read value of the next identifier token
-3. do this until there is no comma afterwards.
-
+1. Get the datatype -> use 'parse()'
+2. Get variable name -> read value of the next identifier token
+3. Do this until the next character is not a comma.
 
 <details>
 <summary> ⚠️ Implementation </summary>
@@ -278,24 +301,25 @@ fn struct_type(parser: &mut Parser) -> Result<DataType> {
     parser.expect(TokenKind::CloseCurly)?;
     Ok(DataType::Struct { properties })
 }
-``` 
+```
 
 </details>
 
-##  parsing enums
+## Parsing Enums
 
-```c 
+```c
 typedef enum { MODE_A, MODE_B = 5, MODE_C } Mode;
 ```
 
-### Data type 
+### Data Type
 
-First we need to define a new type for the enum fields, because it doesn't match the previous types that we used, it needs: value(int) and a name.  
+First we need to define a new type for the enum fields, because it doesn't match
+the previous types that we used, it needs: value(int) and a name.
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rs
+```rs
 //parser/types/mod.rs
 pub enum DataType {
     ...
@@ -305,12 +329,12 @@ pub enum DataType {
 
 </details>
 
-type inside `DataType`, only needs to store fields.
+Type inside the `DataType`, will only store fields.
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rs
+```rs
 //parser/types/mod.rs
 #[derive(Debug, Clone)]
 pub enum DataType {
@@ -321,20 +345,22 @@ pub enum DataType {
 
 </details>
 
+### Parsing
 
-### Parsing 
-
-To parse enum we will have to read the name of a field, then check if it has some value assigned to it.
-If the value is set, then it should carry through to the next fields, increasing by one.
+To parse enum we will have to read the name of a field, then check if it has
+some value assigned to it. If the value is set, then it should carry through to
+the next field increased by one.
 
 :::caution
+
 Remember to expect tokens like '{' and '}' at the beginning and end.
+
 :::
 
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 fn enum_type(parser: &mut Parser) -> Result<DataType> {
     parser.expect(TokenKind::OpenCurly)?;
     let mut current_value: i32 = 0;
@@ -377,13 +403,14 @@ fn enum_type(parser: &mut Parser) -> Result<DataType> {
 
 </details>
 
-## End result
+## End Result
 
-At in the end your `parser/types/mod.rs` file should look like this: 
+At in the end your `parser/types/mod.rs` file should look like this:
+
 <details>
 <summary> ⚠️ Implementation </summary>
 
-``` rust
+```rust
 // parser/types/mod.rs
 use crate::lexer::token::Token;
 use crate::parser::expression::Property;
@@ -519,7 +546,40 @@ fn struct_type(parser: &mut Parser) -> Result<DataType> {
     parser.expect(TokenKind::CloseCurly)?;
     Ok(DataType::Struct { properties })
 }
-``` 
+```
 
 </details>
 
+---
+
+#### Bugs
+
+If you find anything to improve in this project's code, please create an issue
+describing it on the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP/issues).
+For website-related issues, create an issue
+[here](https://github.com/FilipRuman/pages/issues).
+
+#### Support
+
+All pages on this site are written by a human, and you can access everything for
+free without ads. If you find this work valuable, please give a star to the
+[GitHub repository for this project](https://github.com/FilipRuman/RIP).
+
+<script src="https://giscus.app/client.js"
+        data-repo="FilipRuman/RIP"
+        data-repo-id="R_kgDOQNyZng"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOQNyZns4C4CHN"
+        data-mapping="specific"
+        data-term="expression parsing functions"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>
