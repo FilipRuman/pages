@@ -8,6 +8,31 @@ export default defineConfig({
   base: "/pages",
   integrations: [
     starlight({
+        head: [
+                {
+                  tag: "meta",
+                  attrs: {
+                    name: "google-site-verification",
+                    content: "hY0iKDHZST_WcCCaSmemFiD7iyldwqm-MLiqnI18c_I"
+                  }
+                },
+                {
+                  tag: "script",
+                  attrs: {
+                    async: true,
+                    src: "https://www.googletagmanager.com/gtag/js?id=G-MQ2T63NLMT"
+                  }
+                },
+                {
+                  tag: "script",
+                  content: `
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', 'G-MQ2T63NLMT');
+                  `
+                }
+        ],
       customCss: [
         // Relative path to your @font-face CSS file.
         "./src/fonts/font-face.css",
