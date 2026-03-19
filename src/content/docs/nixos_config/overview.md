@@ -6,8 +6,13 @@ description: overview
 In this tutorial, I'll try to share the knowledge I've gathered throughout my
 NixOS journey.
 
-This tutorial is designed for people who have at least a very basic knowledge of
-Nix. If you don't, I recommend watching at least this video .
+This tutorial is designed for people with at least a very basic knowledge of
+Nix. If you are new to it, I recommend watching at least some of those videos
+first:
+
+- [NixOS Beginner Guide](https://www.youtube.com/watch?v=bjTxiFLSNFA&pp=ygUTdmltam95ZXIgYmVnZ2luZXJycw%3D%3D)
+- [Nix Language Explained](https://www.youtube.com/watch?v=UgrwoAGSPOQ)
+- [6 Popular NixOS Beginner Mistakes To Avoid](https://www.youtube.com/watch?v=jQzPRYgJw04&pp=ygUTdmltam95ZXIgYmVnZ2luZXJycw%3D%3D)
 
 If you only want to read about certain topics, feel free to skip some pages or
 read them out of order.
