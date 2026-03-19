@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://filipruman.github.io/pages/sitemap-index.xml
