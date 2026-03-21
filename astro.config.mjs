@@ -9,6 +9,10 @@ export default defineConfig({
   site: "https://filip-ruman.pages.dev/",
   base: "/",
   integrations: [starlight({
+      logo: {
+        src: './public/AlpacaNoLines.png',
+        replacesTitle: true,
+      },
       head: [
                 {
                   tag: "meta",
@@ -25,6 +29,7 @@ export default defineConfig({
                     src: "https://www.googletagmanager.com/gtag/js?id=G-MQ2T63NLMT"
                   }
                 },
+
                 {
                   tag: "script",
                   content: `
@@ -34,6 +39,14 @@ export default defineConfig({
                     gtag('config', 'G-MQ2T63NLMT');
                   `
                 },
+                 {
+                   tag: "link",
+                   attrs: {
+                     rel: "shortcut icon",
+                     type:"image/svg+xml",
+                     href: "/AlpacaLines.svg"
+                   }
+                 },
                 {
                   tag: "link",
                   attrs: {
