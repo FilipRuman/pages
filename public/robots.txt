@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 
 Sitemap: https://filipruman.github.io/pages/sitemap-index.xml
+Sitemap: https://filipruman.github.io/pages/sitemap-0.xml
+Sitemap: https://filipruman.github.io/pages/site-map.xml
