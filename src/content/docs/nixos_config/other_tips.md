@@ -16,7 +16,7 @@ gpu-screen-recorder \
         -o "$HOME/Videos/recording_$(date +%F_%H-%M-%S).mp4" &
 ```
 
-For ending the recording I use: `pkill -f gpu-screen-recorder`. I have banded
+For ending the recording I use: `pkill -f gpu-screen-recorder`. I have bind-ed
 those commands to shortcuts inside the Hyprland.
 
 ## Screenshots
