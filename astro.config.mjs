@@ -95,28 +95,22 @@ export default defineConfig({
       },
     ],
     sidebar: [
-      // {
-      //   label: "⛰️",
-      //   items: [
-      //     {
-      //       label: "PROCEDURAL TERRAIN GENERATION",
-      //       link: "https://github.com/FilipRuman/procedural_terrain_generationV2",
-      //       attrs: {
-      //         target: "_blank",
-      //         style: "font-style: bold;font-size: 20px; text-align:center",
-      //       },
-      //     },
-      //     { slug: "procedural_terrain_generation/preamble" },
-      //     { slug: "procedural_terrain_generation/basic_setup" },
-      //     { slug: "procedural_terrain_generation/ground_textures" },
-      //     {
-      //       slug: "procedural_terrain_generation/terrain_generation_quality_improvements",
-      //     },
-      //     { slug: "procedural_terrain_generation/performane_improvements" },
-      //     { slug: "procedural_terrain_generation/spawning_small_objects" },
-      //     { slug: "procedural_terrain_generation/spawning_large_structures" },
-      //   ],
-      // },
+        {
+          label: "⛰️",
+          items: [
+            {
+              label: "PROCEDURAL TERRAIN GENERATION",
+              link: "https://github.com/FilipRuman/procedural_terrain_generationV2",
+              attrs: {
+                target: "_blank",
+                style: "font-style: bold;font-size: 20px; text-align:center",
+              },
+            },
+            { slug: "terrain_gen/overview/overview" },
+            { slug: "terrain_gen/basic_ground_mesh/basic_ground_mesh" },
+            { slug: "terrain_gen/ground_shader/ground_shader" },
+          ],
+        },
 
       {
         label: "",
