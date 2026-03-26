@@ -1,6 +1,6 @@
 ---
 title: 4. Rice
-description: Rice
+description: Make everyone envy your setup with minimal effort. Apply themes to Hyprland, Stylix, Waypaper, Plymouth, Hyprpanel, Hyprlock, Rofi, and SDDM efficiently using flake modules..
 ---
 
 I really like making the programs I use look and behave exactly the way I want.

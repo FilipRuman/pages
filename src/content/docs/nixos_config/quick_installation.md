@@ -1,6 +1,6 @@
 ---
 title: 2. Quick Installation
-description: Quick Installation
+description: Install your NixOS configuration with just one command. Clone from GitHub, set hostname, clean /etc/nixos, and deploy reproducible setups in minutes.
 ---
 
 `The ability to quickly and easily install your configuration is important for

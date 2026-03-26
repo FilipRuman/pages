@@ -1,6 +1,6 @@
 ---
 title: 0. Overview
-description: overview
+description: Overview of my whole NixOS tutorial and best learning resources for beginner wanting to learn Nix/Nixos.
 ---
 
 In this tutorial, I'll try to share the knowledge I've gathered throughout my
