@@ -12,10 +12,17 @@ The configuration structure that I recommend most is called the “Dendritic
 pattern”. It allows you to remove most of the boilerplate and write reusable
 configurations that can be used across multiple machines.
 
+If you want an example of a working configuration you can look at
+[my configuration](https://github.com/FilipRuman/NNC) or one of:
+
+- [Doc-Steve's configuration](https://github.com/Doc-Steve/dendritic-design-with-flake-parts/tree/main/modules)
+- [Vimjoyer's configuration](https://github.com/vimjoyer/nixconf)
+
 I highly recommend those sources if you want to know more about this:
 
 - [Vimjoyer's video](https://www.youtube.com/watch?v=-TRbzkw6Hjs)
 - [Dendritic design GitHub repo](https://github.com/Doc-Steve/dendritic-design-with-flake-parts)
+- [Ultimate NixOS Desktop: Niri, Noctalia Shell, and the Dendritic Pattern | Full Setup](https://www.youtube.com/watch?v=aNgujRXDTdE)
 
 ## Basic Setup
 
