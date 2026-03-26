@@ -1,6 +1,6 @@
 ---
-title: 1. Config Structure
-description: Dendritic NixOS flake structure explained: reusable modules, host configs, Home Manager integration, and clean multi-machine configuration.
+title: 1. Config Structure.
+description: dendritic NixOS flake structure explained- reusable modules, host configs, Home Manager integration, and clean multi-machine configuration.
 ---
 
 Generally speaking, it doesn’t matter how your configuration is structured. It’s
