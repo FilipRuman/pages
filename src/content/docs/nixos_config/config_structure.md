@@ -1,5 +1,5 @@
 ---
-title: 1. Config Structure.
+title: How to structure your NixOS config
 description: dendritic NixOS flake structure explained- reusable modules, host configs, Home Manager integration, and clean multi-machine configuration.
 ---
 

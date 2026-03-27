@@ -1,5 +1,5 @@
 ---
-title: 5. Other Tips
+title: Practical NixOS tips
 description:Practical NixOS tips: screen recording with gpu-screen-recorder, fast screenshots via Grimblast in Hyprland, and importing local fonts into flakes.
 ---
 

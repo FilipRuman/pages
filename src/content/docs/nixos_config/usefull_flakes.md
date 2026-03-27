@@ -1,5 +1,5 @@
 ---
-title: 3. Useful Flakes
+title: List of Useful NixOS Flakes
 description: Level up your NixOS config with those few simple tools. Learn how to use Nix-Flatpak, Steam-Config-Nix and NVF to make your life easier.
 ---
 
