@@ -1,5 +1,5 @@
 ---
-title: 0. Overview
+title: Overview of my NixOS tutorial
 description: Overview of my whole NixOS tutorial and best learning resources for beginner wanting to learn Nix/Nixos.
 ---
 
