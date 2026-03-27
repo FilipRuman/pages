@@ -1,6 +1,6 @@
 ---
-title: 0. Overview
-description: overview
+title: Overview of my NixOS tutorial
+description: Overview of my whole NixOS tutorial and best learning resources for beginner wanting to learn Nix/Nixos.
 ---
 
 In this tutorial, I'll try to share the knowledge I've gathered throughout my
@@ -30,6 +30,12 @@ features are:
   [here](https://mynixos.com/home-manager/options/programs) and search for
   program's name with Ctr+f.
 - [NixOS wiki](https://nixos.wiki/wiki)
+
+If you want an example of a working configuration you can look at
+[my configuration](https://github.com/FilipRuman/NNC) or one of:
+
+- [Doc-Steve's configuration](https://github.com/Doc-Steve/dendritic-design-with-flake-parts/tree/main/modules)
+- [Vimjoyer's configuration](https://github.com/vimjoyer/nixconf)
 
 ---
 
