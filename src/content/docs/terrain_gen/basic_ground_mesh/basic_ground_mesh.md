@@ -36,11 +36,11 @@ public partial class GroundMeshGen : Node
                 public Vector2[] uvs;
                 public float[] height_map;
                 public float[] tangents;
+                private Vector2I base_world_pos;
         }
 
         private int triangles_per_dimension;
         private float triangle_size;
-        private Vector2I base_world_pos;
 
         private void GenerateUVsAndVertexes(MeshData mesh_data)
         {
@@ -50,7 +50,7 @@ public partial class GroundMeshGen : Node
                         for (int z = 0; z < triangles_per_dimension; z++)
                         {
                                 var relative_pos = new Vector2I(x, z);
-                                Vector2 worldPos = (Vector2)relative_pos * triangle_size + base_world_pos;
+                                Vector2 worldPos = (Vector2)relative_pos * triangle_size + mesh_data.base_world_pos;
                                 float height = CalculateHeight(worldPos);
                                 Vector3 vertex_pos = new(worldPos.X, height, worldPos.Y);
                                 mesh_data.vertices[x + z  * triangles_per_dimension] = vertex_pos;
@@ -99,7 +99,7 @@ private void GenerateUVsAndVertexes(MeshData mesh_data)
 +                for (int z = -1; z < triangles_per_dimension + 1; z++)
 +                {
                          var relative_pos = new Vector2I(x, z);
-                         Vector2 worldPos = (Vector2)relative_pos * triangle_size + base_world_pos;
+                         Vector2 worldPos = (Vector2)relative_pos * triangle_size + mesh_data.base_world_pos;
                          float height = CalculateHeight(worldPos);
 
                          Vector3 vertex_pos = new(worldPos.X, height, worldPos.Y);
@@ -140,8 +140,8 @@ will have the UV of: (0.2;0.3).
                           mesh_data.height_map[i] = height;
                           mesh_data.vertices[i] = vertex_pos;
 +                         mesh_data.uvs[i] = new Vector2(
-+                             x / (float)triangles_per_dimension,
-+                             z / (float)triangles_per_dimension
++                             x / (float)(triangles_per_dimension - 1),
++                             z / (float)(triangles_per_dimension - 1)
 +                         );
                   }
           }
@@ -364,24 +364,38 @@ public void GenerateTangents(MeshData mesh_data)
 ## Generating Mesh
 
 Now let's combine all of the newly implemented functions to generate a mesh that
-will repesent terrain. First implement a `GenerateChunkData` function that will
-take some basing terrain parameters to generate data for the mesh.
+will repesent terrain.First implement the `Initialize` function it will
+configure some very basic settings that will not change when generating terrain
+mesh chunks at different positions.
 
 ```cs
 //GroundMeshGen.cs
-public MeshData GenerateChunkData(int resolution, int size, Vector2I base_world_pos)
+public void Initialize(int size)
 {
-        MeshData mesh_data = new MeshData(); 
         this.size = size;
-        this.base_world_pos = base_world_pos;
         triangles_per_dimension = resolution + 1;
         triangle_size = size / (float)resolution;
+}
+```
 
-        mesh_data.GenerateUVsAndVertexes();
-        mesh_data.GenerateIndices();
-        mesh_data.GenerateNormals();
-        mesh_data.GenerateTangents();
+Next implement a `GenerateChunkData` function that will take some basing terrain
+parameters to generate data for the mesh.
 
+```cs
+//GroundMeshGen.cs
+
+/// The 'Initialize' function needs to be called first
+public MeshData GenerateChunkData(Vector2I base_world_pos)
+{
+        var mesh_data = new MeshData
+        {
+                base_world_pos = base_world_pos
+        };
+
+        GenerateUVsAndVertexes(mesh_data);
+        GenerateIndices(mesh_data);
+        GenerateNormals(mesh_data);
+        GenerateTangents(mesh_data);
         return mesh_data;
 }
 ```
@@ -401,27 +415,27 @@ We can also use the height map to generate collider for this terrain.
 //GroundMeshGen.cs
 
 /// Needs to be called after the `GenerateChunkData()`
-public void ApplyData(CollisionShape3D collider,MeshInstance3D mesh_instance,MeshData mesh_data)
+public void ApplyData(MeshData data, MeshInstance3D mesh_instance, CollisionShape3D collider)
 {
         var arrays = new Godot.Collections.Array();
         arrays.Resize((int)Mesh.ArrayType.Max);
 
-        arrays[(int)Mesh.ArrayType.Vertex] = mesh_data.vertices;
-        arrays[(int)Mesh.ArrayType.Index] = mesh_data.indices;
-        arrays[(int)Mesh.ArrayType.Normal] = mesh_data.normals;
-        arrays[(int)Mesh.ArrayType.TexUV] = mesh_data.uvs;
-        arrays[(int)Mesh.ArrayType.Tangent] = mesh_data.tangents;
+        arrays[(int)Mesh.ArrayType.Vertex] = data.vertices;
+        arrays[(int)Mesh.ArrayType.Index] = data.indices;
+        arrays[(int)Mesh.ArrayType.Normal] = data.normals;
+        arrays[(int)Mesh.ArrayType.TexUV] = data.uvs;
+        arrays[(int)Mesh.ArrayType.Tangent] = data.tangents;
 
         HeightMapShape3D shape = new()
         {
                 MapWidth = triangles_per_dimension,
                 MapDepth = triangles_per_dimension,
-                MapData = mesh_data.height_map
+                MapData = data.height_map
         };
         collider.Shape = shape;
         collider.Scale = new Vector3(triangle_size, 1, triangle_size);
         // `- size/2f` is needed because otherwise this will be the center point for the collider, and for mesh this will be the bottom left corner. 
-        collider.Position = new(base_world_pos.X + size / 2f, 0, base_world_pos.Y + size / 2f);
+        collider.Position = new(data.base_world_pos.X + size / 2f, 0, data.base_world_pos.Y + size / 2f);
 
 
         var mesh = new ArrayMesh();
@@ -445,13 +459,13 @@ public partial class GenerationController : Node
         [Export] int terrain_chunk_size;
 
         [Export] GroundMeshGen ground_mesh_gen;
-        [Export] int ground_mesh_resolution;
         [Export] MeshInstance3D mesh_instance;
         [Export] CollisionShape3D collider;
         private void Run()
         {
                 Vector2I base_world_pos = new(0, 0);
-                var mesh_data = ground_mesh_gen.GenerateChunkData(ground_mesh_resolution, terrain_chunk_size, base_world_pos);
+                ground_mesh_gen.Initialize(terrain_chunk_size);
+                var mesh_data = ground_mesh_gen.GenerateChunkData(base_world_pos);
                 ground_mesh_gen.ApplyData(mesh_data, mesh_instance, collider);
         }
 

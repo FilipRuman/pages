@@ -109,6 +109,7 @@ export default defineConfig({
             { slug: "terrain_gen/overview/overview" },
             { slug: "terrain_gen/basic_ground_mesh/basic_ground_mesh" },
             { slug: "terrain_gen/ground_shader/ground_shader" },
+            { slug: "terrain_gen/chunked_terrain_generation/chunked_terrain_generation" },
           ],
         },
 

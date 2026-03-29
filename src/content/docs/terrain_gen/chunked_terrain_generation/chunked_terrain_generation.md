@@ -1,9 +1,9 @@
 ---
-title: 1. Overview
-description: Overview
+title: Chunked terrain generation
+description:
 ---
 
-## TODO: Add links to branches on github for each of the tutorial's pages
+---
 
 #### Bugs
 
@@ -25,7 +25,7 @@ free without ads. If you find this work valuable, please give a star to the
         data-category="Announcements"
         data-category-id="DIC_kwDOQlnCIM4C4CHB"
         data-mapping="specific"
-        data-term="overview"
+        data-term="chunked terrain generation"
         data-strict="0"
         data-reactions-enabled="1"
         data-emit-metadata="0"
