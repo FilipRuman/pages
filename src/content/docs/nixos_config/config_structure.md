@@ -36,8 +36,8 @@ easily sync your config with other devices and store it safely.
 Most of the "random" or "weird" errors I encountered when working with nix
 config were caused by git. If files in a subdirectory aren't "visiblel" when you
 rebuild your config, it is probably because this directory isn't included inside
-your Git tree. I like to use
-[lazy git](https://github.com/jesseduffield/lazygit) for this.
+your Git tree. You can just use `git add '*'` for this or if you want a gui app
+you can use [lazy git](https://github.com/jesseduffield/lazygit) for this.
 
 :::
 
