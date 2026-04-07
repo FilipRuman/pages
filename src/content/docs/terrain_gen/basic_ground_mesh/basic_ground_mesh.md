@@ -1,25 +1,28 @@
 ---
-title: 1. Basic ground mesh
-description: Basic ground mesh
+title: Generating a basic ground mesh.
+description: Generateing basic fround mesh for terrain generation in godot with C#. It includes vertex, UV, index, normal, and tangent data generation.
 ---
 
 Let's start by creating a Godot project, use Forward+ renderer.
 
 ## Generating Simple Mesh
 
-Godot allows you to procedurally generate meshes, by using the
+Godot allows for easy procedural mesh generation, by using the
 [MeshInstance3D](https://docs.godotengine.org/en/stable/classes/class_meshinstance3d.html).
 [Surface tool](https://docs.godotengine.org/en/stable/classes/class_surfacetool.html)
-is used to generate mesh data for it with hight abstraction layer. In this
-project we will be generating data without usign the 'Surface Tool'. This will
-allow us to make terrain generation more efficient because we will utylize some
-of the data generated in other places which would not be possible otherwise.
+is used to generate mesh data for it with high abstraction. In this project we
+will be generating data without the `Surface Tool`. This will allow for more
+efficient generation by using the generated data in other code which would not
+be possible otherwise. This design will also allow us to run most of the
+generation process on multiple threads without practically any changes to the
+existing code.
 
 ### Generating Mesh UVs and Vertices
 
-Vertices are points of which the mesh will consits. We will be just placing them
-in a square with a certain spacing defined by the size of our mesh and it's
-resolution.
+Vertices are points that will be used for generating triangles that the ground's
+mesh will consist of. They will be placed in a square pattern with a certain
+spacing defined by the terrain size and desired resolution. All the data will be
+stored in a `MeshData` class.
 
 ```cs
 //GroundMeshGen.cs
@@ -61,9 +64,10 @@ public partial class GroundMeshGen : Node
 }
 ```
 
-Height will be calculated by the `CalculateHeight()`. This function will be
-taking vertex's position and return height for it. For now the height
-calculation will be really simple but later we will make it more customizable.
+Height(y position) of the vertices will be calculated by the
+`CalculateHeight()`. This function will be taking vertex's position and return
+height for it. For now the height calculation will be really simple but more
+features will be implemented later.
 
 ```cs
 //GroundMeshGen.cs
@@ -75,12 +79,12 @@ private float CalculateHeight(Vector2 world_pos)
 }
 ```
 
-We will later need to calculate a padding of 1 vertex outside of the current
-mesh. This will be needed for calculating normals in a way that will result in a
-seamless transitions between different chunks of the terrain.
+Calculation of a 1 vertex padding outside of the current mesh is required. This
+will allow for calculating normals in a way that will result in seamless
+transitions between different chunks of the terrain.
 
-Also we might as well store pure height as a height map. It will be useful for
-many features that we will implement later.
+Height will be stored in a separate array that will be useful in the future for
+generating things like ground colliders or objects.
 
 ```diff lang="cs"
 //GroundMeshGen.cs
@@ -120,10 +124,10 @@ private void GenerateUVsAndVertexes(MeshData mesh_data)
  }
 ```
 
-Next we will need to calculate the UV value for the current vertex. The
-uv(Vector2 with each axis ∈ (0;1)) says at what % of the mesh the current vertex
-is. So if we have a mesh made of 100x100 vertices than a vertex at a (20;30)
-will have the UV of: (0.2;0.3).
+UV values vertices will be calculated next. UV(Vector2 with each axis ∈ (0;1))
+says at what percent of the mesh the current vertex is. So if we have a mesh
+made of 100x100 vertices than at a Vector2(20;30) position vertex's UV will be
+equal to (0.2;0.3).
 
 ```diff lang="cs"
 //GroundMeshGen.cs
@@ -151,14 +155,13 @@ will have the UV of: (0.2;0.3).
 
 ## Generating Indices
 
-Another thing that eavery mesh has to have are indices. Indices tell gpu how to
-create triangles form vertices so that we get a valid and facing the right way
-mesh. For performance resons only one side of the triangle is drawn so it is
-important to connect verteces in a counter-clockwise order so that the 'top'
-side of them is drawn:
-![How to draw a simple rectangle](./rectangle_drawing_ilustration.png)
+Indices in mesh tell GPU how to create triangles form vertices in a way that
+results in a valid and facing in the right way mesh. For performance reasons
+only one side of the triangle is drawn so it is important to connect vertices
+with indices in a counter-clockwise order so that the 'top' side of the triangle
+is drawn: ![How to draw a simple rectangle](./rectangle_drawing_ilustration.png)
 
-So the order that we will connect our vertices will be:
+The order that the vertices are will be connected is:
 
 1. top-left
 1. top-right
@@ -167,7 +170,7 @@ So the order that we will connect our vertices will be:
 1. bottom-left
 1. top-right
 
-Which for our mesh translates into those indices:
+Which for this implementation translates into those indices:
 
 ```cs
 current_vertex_index;
@@ -179,7 +182,7 @@ current_vertex_index + triangles_per_dimension;
 current_vertex_index + 1;
 ```
 
-Implementation:
+Implementation of indices generation:
 
 ```cs
 //GroundMeshGen.cs
@@ -212,10 +215,10 @@ private void GenerateIndices(MeshData mesh_data)
 
 ## Generating Normals
 
-If you had any expirience with optics related physics you will definitly know
-already what a normal is. It's just a object that is perpendicular to a given
-object. In our case a vector that is perpendicular to the Surface of a mesh in a
-triangle. We will use the code bellow to calculate it.
+If you had any experience with optics related physics you will already know what
+a normal is. It's just a direction that is perpendicular to a given surface. In
+this case a vector that is perpendicular to the surface of a triangle mesh. The
+code bellow will calculate it.
 
 ```cs
 Vector3 normal = new Vector3(
@@ -225,7 +228,7 @@ Vector3 normal = new Vector3(
 ).Normalized();
 ```
 
-Implementation:
+Implementation of normals generation for the whole mesh:
 
 ```cs
 //GroundMeshGen.cs
@@ -262,22 +265,21 @@ private void GenerateNormals(MeshData mesh_data)
 
 ## Generating Tangents
 
-Tangent is value that describes: Let's say that we have a point that moves on
-the triangles that our mesh is made of. This point always wants to move in
-direction of the X axis. If the terrain is flat than the vector of his direction
-will be: `(1;0;0)`. But if the terrain's Y possition is changing than the vector
-describing his direction for each of his steps will look like this:
-`(1; (step_size * delta_height)/(step_size * delta_x); 0).normalize()` So if he
-moves by 1 meter each step and his terrain is really steep and he moved by a 0.5
-meter in the X direction and by 0.5 meter in the Y direction than his tangent
-will be:
+Let's say that we have a point that moves on the triangles that our mesh is made
+of. This point always wants to move in direction of the X axis. If the terrain
+is flat than the vector of its direction will be: `(1;0;0)`. If the terrain's
+shape is changing than the vector will change. In that case an equation to
+calculate the direction for each of its steps is needed.
+`(1; (step_size * delta_height)/(step_size * delta_x); 0).normalize()` If a
+point moves by 1 meter each step and the terrain is really steep. Let's say that
+it moved by a 0.5 meter in the X direction and by 0.5 meter in the Y direction.
 
 ```
 step_size = 1
 delta_height = 0.5
 delta_x = 0.5
 (step_size * delta_height)/(step_size * delta_x) = 1
-un_normalized_tangent = (1;1;0)
+tangent = (1;1;0)
 normalized_tangent = (sqrt(2)/2;sqrt(2)/2;0)
 ```
 
@@ -363,10 +365,8 @@ public void GenerateTangents(MeshData mesh_data)
 
 ## Generating Mesh
 
-Now let's combine all of the newly implemented functions to generate a mesh that
-will repesent terrain.First implement the `Initialize` function it will
-configure some very basic settings that will not change when generating terrain
-mesh chunks at different positions.
+The `Initialize` function it will configure some very basic settings that will
+not change thought the terrain mesh chunks generation at different positions.
 
 ```cs
 //GroundMeshGen.cs
@@ -378,8 +378,8 @@ public void Initialize(int size)
 }
 ```
 
-Next implement a `GenerateChunkData` function that will take some basing terrain
-parameters to generate data for the mesh.
+`GenerateChunkData` function will take some basic terrain parameters for the
+previously implemented factions to generate data for the mesh.
 
 ```cs
 //GroundMeshGen.cs
@@ -400,16 +400,15 @@ public MeshData GenerateChunkData(Vector2I base_world_pos)
 }
 ```
 
-Next We will implement a separate function to apply the generated data. This
-separation is needed because later we will implement multithreading and in Godot
-you can only create nodes on the main thread. This will allow us to run data
-generation for multiple chunks on many threads and apply the data one at the
-time on the main thread.
+Next a separate function to apply the generated data will be implement. This
+separation will allow for multithreading implementation because Godot allows for
+nodes creation only on the main thread. This will allow for data generation on
+many threads and later applying it on the main thread.
 
-In this function we will pack data into a one array, and give it to the
+`ApplyData` function will pack data into a one array, and give it to the
 `ArrayMesh`.\
-We can also use the height map to generate collider for this terrain.
-`HeightMapShape3D` can be used for this.
+It will also use the height map to generate a `HeightMapShape3D` collider for
+this mesh.
 
 ```cs
 //GroundMeshGen.cs
@@ -445,7 +444,7 @@ public void ApplyData(MeshData data, MeshInstance3D mesh_instance, CollisionShap
 }
 ```
 
-Now we need to implement script that will run the whole generation process. It
+Next a script that runs the whole generation process will be implemented. It
 will get a lot more complex in the future but for now it will just look like
 this:
 
@@ -472,19 +471,19 @@ public partial class GenerationController : Node
 }
 ```
 
-## End Resoult
+## End Result
 
-Now you can add those scripts to nodes and run this code to generate a terrrain
-mesh with collisions.\
+Next, previously implemented scripts will be added to nodes. Now the terrain
+generation can be configured and used to generate a basic ground mesh.
 
 TODO: Add a screen shot of editor.
 
 :::tip
 
-If you have a trouble running your script as tool, try following:
+Try following if you have a trouble running scripts as tools:
 
-1. Click build project - Alt + B
-2. Close Godot and launch it again
+1. Build the project - Alt + B
+2. Close the Godot editor and launch it again
 
 :::
 
@@ -497,8 +496,8 @@ If you are on NixOS and have problem with Godot crashing try:
 
 :::
 
-This still doesn't look great because we lack any textures, so this is what we
-will deal with next.
+Ground still doesn't look great because it lacks any textures, this is what will
+be implemented on the next page.
 
 ---
 
