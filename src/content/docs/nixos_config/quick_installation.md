@@ -6,7 +6,8 @@ description: Install your NixOS configuration with just one command. Clone from 
 Ability to quickly and easily install your configuration is important for many
 reasons. To accomplish this, we want to be able to copy the configuration,
 remove unnecessary files, and create additional data with as few steps as
-possible.
+possible. You can even do this remotly thru ssh with
+[nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
 
 :::note
 
