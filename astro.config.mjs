@@ -108,9 +108,9 @@ export default defineConfig({
             },
             { slug: "terrain_gen/overview/overview" },
             { slug: "terrain_gen/basic_ground_mesh/basic_ground_mesh" },
-            { slug: "terrain_gen/ground_shader/ground_shader" },
-            { slug: "terrain_gen/chunked_terrain_generation/chunked_terrain_generation" },
-            { slug: "terrain_gen/improved_landmass_generation/improved_landmass_generation" },
+            //{ slug: "terrain_gen/ground_shader/ground_shader" },
+            //{ slug: "terrain_gen/chunked_terrain_generation/chunked_terrain_generation" },
+            //{ slug: "terrain_gen/improved_landmass_generation/improved_landmass_generation" },
           ],
         },
 
@@ -125,12 +125,27 @@ export default defineConfig({
               style: "font-style: bold;font-size: 20px; text-align:center",
             },
           },
+          { slug: "nixos_config/resons_for_using_nixos" },
           { slug: "nixos_config/overview" },
           { slug: "nixos_config/config_structure" },
           { slug: "nixos_config/quick_installation" },
           { slug: "nixos_config/usefull_flakes" },
           { slug: "nixos_config/rice" },
           { slug: "nixos_config/other_tips" },
+        ],
+      },
+      {
+        label: "󰳳",
+        items: [
+          {
+            label: "One shots",
+            link: "https://github.com/FilipRuman",
+            attrs: {
+              target: "_blank",
+              style: "font-style: bold;font-size: 20px; text-align:center",
+            },
+          },
+          { slug: "one_shot/godot_debugging" },
         ],
       },
       {

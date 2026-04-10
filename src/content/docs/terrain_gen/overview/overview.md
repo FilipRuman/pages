@@ -3,41 +3,41 @@ title: Overview of the whole procedural terrain generation tutorial.
 description: Overview of the project in whitch i implement a procedural terrain generation for Godot in C#.
 ---
 
-In this tutorial I will tell you how to set up a high quality terrain
-generation. I tried to implement features that aren't well known but, in my
-opinion, are really useful. Here are the main choices that I've done for this
-project:
+In this tutorial I describe how to implement a high quality terrain generation
+system using Godot + C# and gdshader. The implementation focuses on several
+techniques that are less common but, in my opinion, are useful.
 
-- I want to make the terrain generation as customizable as it can get while
-  being reasonably performant and good looking.
+The main design decisions for this project are:
 
-- Generate biomes based on the procedurally generated terrain aspects. Store
-  biome data textures on textures and use this for the ground shader. This
-  allows for more realistic and customizable and biome generation.
-- Most of the terrain generation process is multi-threaded by design.
-- I skip over implementing dynamic LOD(level of details) for the terrain mesh
-  because the whole tutorial is long enough. If you want to implement it
-  yourself than I highly recommend looking at this series form
-  [Sebastian Lague](https://www.youtube.com/watch?v=417kJGPKwDg&list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3&index=6)
-
-- I implement a way to generate small objects(trees, grass, rocks, etc.) and big
-  structures(buildings).
-- I specially don't go over implementing any interactions with the terrain
-  because this tutorial is long enough. The design should allow to reasonably
-  easily implement this.
-- Implementation will allow for generation of infinite maps and there for the
-  terrain will be split into chunks. This will allow for efficient run-time map
+- Provide high customization while delivering reasonable performance and
+  graphics.
+- Generate biome data based on the procedurally generated terrain aspects (e.g.,
+  elevation, slope, temperature). Store biome data on textures and use this for
+  the ground shader. This allows for more realistic and customizable and biome
   generation.
+- Most of the terrain generation process is multi-threaded.
+- Skip implementing dynamic LOD(Level Of Detail) for the terrain mesh to keep
+  the scope of this tutorial manageable. If you want to implement it yourself,
+  the series by
+  [Sebastian Lague](https://www.youtube.com/watch?v=417kJGPKwDg&list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3&index=6)
+  is a useful resource.
+- Implement a way to generate small objects(trees, grass, rocks, etc.) as well
+  as big structures(e.g. buildings).
+- Deliberately avoid implementing any interactions with the terrain to once
+  again keep the scope of this project reasonable. Design of the code should
+  allow you to easily implement this yourself.
+- Implementation will allow for generation of infinite maps and therefore the
+  terrain will need to be split into chunks. This will allow for efficient
+  real-time map generation.
 
 You can find source code for all the pages of this tutorial on the
 [GitHub repo for this project](https://github.com/FilipRuman/procedural_terrain_generationV2)
-by looking at the appropriate branch.
+by looking at the appropriate branches.
 
 ## Additional Learning Resources
 
-There are a lot of different learning resources in the internet about procedural
-terrain generation but here are some ones that I've used myself and really
-liked.
+There are lots of different, online learning resources about procedural terrain
+generation but not all of them are useful. Here is a small list of useful ones.
 
 - [OG Sebastian Lague's tutorial for procedural terrain
   generation](https://www.youtube.com/watch?v=wbpMiKiSKm8&list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3)
@@ -45,6 +45,8 @@ liked.
 - [Paper about stochastic textures sampling](https://eheitzresearch.wordpress.com/722-2/)
 - [The Problem With Procedural Generation](https://www.youtube.com/watch?v=_4DtmRcTbhk)
 - [How Games Fake Water](https://www.youtube.com/watch?v=PH9q0HNBjT4)
+
+---
 
 #### Bugs
 

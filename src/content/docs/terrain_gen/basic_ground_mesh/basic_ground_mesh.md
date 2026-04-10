@@ -3,26 +3,28 @@ title: Generating a basic ground mesh.
 description: Generateing basic fround mesh for terrain generation in godot with C#. It includes vertex, UV, index, normal, and tangent data generation.
 ---
 
-Let's start by creating a Godot project, use Forward+ renderer.
+Start by creating a new Godot project and selecting the **Forward+** renderer.
 
 ## Generating Simple Mesh
 
-Godot allows for easy procedural mesh generation, by using the
+Godot supports procedural mesh generation using
 [MeshInstance3D](https://docs.godotengine.org/en/stable/classes/class_meshinstance3d.html).
-[Surface tool](https://docs.godotengine.org/en/stable/classes/class_surfacetool.html)
-is used to generate mesh data for it with high abstraction. In this project we
-will be generating data without the `Surface Tool`. This will allow for more
-efficient generation by using the generated data in other code which would not
-be possible otherwise. This design will also allow us to run most of the
-generation process on multiple threads without practically any changes to the
-existing code.
+A common approach is to
+use[Surface tool](https://docs.godotengine.org/en/stable/classes/class_surfacetool.html),
+which provides a **high-level** abstraction for constructing mesh data.
+
+In this project, mesh data will be generated without using the `SurfaceTool`.
+This approach allows the generated data to be reused in other parts of the
+system. It also simplifies multi-threading, since the mesh data can be prepared
+independently of Godot’s nodes and later applied to the mesh on the main thread.
 
 ### Generating Mesh UVs and Vertices
 
-Vertices are points that will be used for generating triangles that the ground's
-mesh will consist of. They will be placed in a square pattern with a certain
-spacing defined by the terrain size and desired resolution. All the data will be
-stored in a `MeshData` class.
+Vertices define the points used to construct triangles that form the terrain
+mesh. They will be arranged in a regular grid, with spacing determined by the
+terrain size and the desired resolution.
+
+All generated data will be stored in a `MeshData` class.
 
 ```cs
 //GroundMeshGen.cs
@@ -64,10 +66,10 @@ public partial class GroundMeshGen : Node
 }
 ```
 
-Height(y position) of the vertices will be calculated by the
-`CalculateHeight()`. This function will be taking vertex's position and return
-height for it. For now the height calculation will be really simple but more
-features will be implemented later.
+Height(y position) of the vertices will be calculated by the `CalculateHeight()`
+function. This function takes the vertex position and returns the corresponding
+height. For now, the height calculation will be simple but more features will be
+implemented later.
 
 ```cs
 //GroundMeshGen.cs
@@ -79,12 +81,12 @@ private float CalculateHeight(Vector2 world_pos)
 }
 ```
 
-Calculation of a 1 vertex padding outside of the current mesh is required. This
-will allow for calculating normals in a way that will result in seamless
-transitions between different chunks of the terrain.
+To ensure smooth shading across terrain chunks, an additional one-vertex padding
+layer is needed. This padding makes it possible to compute normals in a way that
+produces seamless transitions between adjacent terrain chunks.
 
-Height will be stored in a separate array that will be useful in the future for
-generating things like ground colliders or objects.
+Height will be stored in a separate array that will be used for generating
+ground colliders or valid positions for buildings.
 
 ```diff lang="cs"
 //GroundMeshGen.cs
@@ -124,10 +126,11 @@ private void GenerateUVsAndVertexes(MeshData mesh_data)
  }
 ```
 
-UV values vertices will be calculated next. UV(Vector2 with each axis ∈ (0;1))
-says at what percent of the mesh the current vertex is. So if we have a mesh
-made of 100x100 vertices than at a Vector2(20;30) position vertex's UV will be
-equal to (0.2;0.3).
+Next, UV coordinates are calculated for each vertex. UV coordinates (Vector2)
+describe the relative position of a vertex on the mesh surface, where each
+component is in the range ⟨0, 1⟩. For example, in a mesh consisting of 100 × 100
+vertices, a vertex located at grid position (20, 30) would have UV coordinates
+equal to (0.2, 0.3).
 
 ```diff lang="cs"
 //GroundMeshGen.cs
@@ -155,22 +158,29 @@ equal to (0.2;0.3).
 
 ## Generating Indices
 
-Indices in mesh tell GPU how to create triangles form vertices in a way that
-results in a valid and facing in the right way mesh. For performance reasons
-only one side of the triangle is drawn so it is important to connect vertices
-with indices in a counter-clockwise order so that the 'top' side of the triangle
-is drawn: ![How to draw a simple rectangle](./rectangle_drawing_ilustration.png)
+Indices define how vertices are connected to form triangles. Instead of
+duplicating vertex data, the mesh uses an index buffer that specifies which
+vertices form each triangle.
 
-The order that the vertices are will be connected is:
+For performance reasons, GPUs typically render only one side of each triangle
+(back-face culling). Therefore, vertices must be specified in a consistent
+winding order. In Godot, triangles defined in counter-clockwise order are
+considered front-facing, meaning their visible side will be rendered.
 
-1. top-left
-1. top-right
-1. bottom-left
-1. bottom-right
-1. bottom-left
-1. top-right
+![How to draw a simple rectangle](./rectangle_drawing_ilustration.png)
 
-Which for this implementation translates into those indices:
+Each quad in the grid is composed of two triangles arranged as follows:
+
+- First triangle:
+  1. top-left
+  2. top-right
+  3. bottom-left
+- Second triangle:
+  1. bottom-right
+  2. bottom-left
+  3. top-right
+
+In this implementation, the indices are generated using the following pattern:
 
 ```cs
 current_vertex_index;
@@ -213,12 +223,54 @@ private void GenerateIndices(MeshData mesh_data)
 }
 ```
 
+## Quick Explanation of What Normals, Tangents, and Bitangents Are
+
+In 3D graphics, a tangent is a vector that lies on the surface of a mesh and
+points in the direction of increasing U coordinate in the texture’s UV mapping.
+Tangents are primarily used in normal mapping, allowing the GPU to correctly
+transform normal maps from texture space into world or object space for lighting
+calculations.
+
+Think of it as a local X-axis on the surface of a triangle, perpendicular to the
+normal but aligned with the texture’s U direction.
+
+:::tip[Example]
+
+Suppose you have a flat square in 3D space:
+
+Vertices:
+
+- V0 = (0, 0, 0)
+- V1 = (1, 0, 0)
+- V2 = (0, 0, 1)
+
+UVs:
+
+- UV0 = (0, 0)
+- UV1 = (1, 0)
+- UV2 = (0, 1)
+
+The normal is (0, 1, 0) (pointing up). The tangent is (1, 0, 0) because moving
+along the U axis of the texture corresponds to moving along the X-axis in 3D
+space. A bitangent (sometimes called binormal) would point along the V axis (0,
+0, 1). Together, these vectors form a TBN (Tangent-Bitangent-Normal) basis used
+for transforming normals from the texture into 3D space.
+
+:::
+
+:::note[In short]
+
+- Normal: points “up” from the surface.
+- Tangent: points in the U direction of the texture.
+- Bitangent: points in the V direction of the texture.
+
+This allows normal maps to bend lighting correctly on any surface.
+
+:::
+
 ## Generating Normals
 
-If you had any experience with optics related physics you will already know what
-a normal is. It's just a direction that is perpendicular to a given surface. In
-this case a vector that is perpendicular to the surface of a triangle mesh. The
-code bellow will calculate it.
+The code bellow is used to calculate the normal vector.
 
 ```cs
 Vector3 normal = new Vector3(
@@ -265,26 +317,7 @@ private void GenerateNormals(MeshData mesh_data)
 
 ## Generating Tangents
 
-Let's say that we have a point that moves on the triangles that our mesh is made
-of. This point always wants to move in direction of the X axis. If the terrain
-is flat than the vector of its direction will be: `(1;0;0)`. If the terrain's
-shape is changing than the vector will change. In that case an equation to
-calculate the direction for each of its steps is needed.
-`(1; (step_size * delta_height)/(step_size * delta_x); 0).normalize()` If a
-point moves by 1 meter each step and the terrain is really steep. Let's say that
-it moved by a 0.5 meter in the X direction and by 0.5 meter in the Y direction.
-
-```
-step_size = 1
-delta_height = 0.5
-delta_x = 0.5
-(step_size * delta_height)/(step_size * delta_x) = 1
-tangent = (1;1;0)
-normalized_tangent = (sqrt(2)/2;sqrt(2)/2;0)
-```
-
-I will not explain each part of the tangent calculation algorithm, because this
-is not the goal of this tutorial.
+Generate tangents function:
 
 ```cs
 //GroundMeshGen.cs
@@ -365,8 +398,8 @@ public void GenerateTangents(MeshData mesh_data)
 
 ## Generating Mesh
 
-The `Initialize` function it will configure some very basic settings that will
-not change thought the terrain mesh chunks generation at different positions.
+`Initialize` function will configure some very basic settings that won't change
+throughout the terrain generation for different chunks.
 
 ```cs
 //GroundMeshGen.cs
@@ -378,8 +411,8 @@ public void Initialize(int size)
 }
 ```
 
-`GenerateChunkData` function will take some basic terrain parameters for the
-previously implemented factions to generate data for the mesh.
+`GenerateChunkData` function will take basic terrain parameters and use the
+previously implemented functions to generate data for the mesh.
 
 ```cs
 //GroundMeshGen.cs
@@ -400,15 +433,15 @@ public MeshData GenerateChunkData(Vector2I base_world_pos)
 }
 ```
 
-Next a separate function to apply the generated data will be implement. This
-separation will allow for multithreading implementation because Godot allows for
-nodes creation only on the main thread. This will allow for data generation on
-many threads and later applying it on the main thread.
+Next, a separate function will be implemented to apply the generated mesh data.
+Separating data generation from application enables multi-threaded generation,
+because Godot only allows node creation on the main thread. This design allows
+mesh data to be computed on multiple threads and then applied safely on the main
+thread.
 
-`ApplyData` function will pack data into a one array, and give it to the
-`ArrayMesh`.\
-It will also use the height map to generate a `HeightMapShape3D` collider for
-this mesh.
+The `ApplyData` function will pack all the `MeshData`'s contents into a one
+array, and give it to the `ArrayMesh`. Next, the height map will be used to
+generate a `HeightMapShape3D` collider for this mesh.
 
 ```cs
 //GroundMeshGen.cs
@@ -444,7 +477,7 @@ public void ApplyData(MeshData data, MeshInstance3D mesh_instance, CollisionShap
 }
 ```
 
-Next a script that runs the whole generation process will be implemented. It
+Next, a script that runs the whole generation process will be implemented. It
 will get a lot more complex in the future but for now it will just look like
 this:
 
@@ -473,10 +506,11 @@ public partial class GenerationController : Node
 
 ## End Result
 
-Next, previously implemented scripts will be added to nodes. Now the terrain
-generation can be configured and used to generate a basic ground mesh.
+Now the godot editor needs to be used to configure the scene, and than run it.
 
-TODO: Add a screen shot of editor.
+![Result](./Result.png)
+
+![Result2](./Result2.png)
 
 :::tip
 
@@ -495,9 +529,6 @@ If you are on NixOS and have problem with Godot crashing try:
 2. Run the executable file with `steam-run`
 
 :::
-
-Ground still doesn't look great because it lacks any textures, this is what will
-be implemented on the next page.
 
 ---
 

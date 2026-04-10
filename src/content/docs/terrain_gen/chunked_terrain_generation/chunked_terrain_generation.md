@@ -1,6 +1,6 @@
 ---
 title: Chunked terrain generation
-description:
+description: TODO
 ---
 
 TODO: Add More Headers TODO: Add script path
