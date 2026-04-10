@@ -506,11 +506,7 @@ public partial class GenerationController : Node
 
 ## End Result
 
-Now the godot editor needs to be used to configure the scene, and than run it.
-
-![Result](./Result.png)
-
-![Result2](./Result2.png)
+Now the Godot editor needs to be used to configure the scene, and than run it.
 
 :::tip
 
@@ -529,6 +525,10 @@ If you are on NixOS and have problem with Godot crashing try:
 2. Run the executable file with `steam-run`
 
 :::
+
+![Result](./Result.png)
+
+![Result2](./Result2.png)
 
 ---
 
