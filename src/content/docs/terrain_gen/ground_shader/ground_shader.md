@@ -1,27 +1,24 @@
 ---
-title: 2. Ground shader
-description: Ground shader
+title: Implementing AAA quality ground shader
+description: Implementing AAA qulaity ground shader with gdshader for procedural terrain in Godot.
 ---
 
-:::note
-
-code formatting might be messed up in this one because I couldn't manage to make
-any code formatter to work the way that i want with gdshader.
-
-:::
-
-Currently our terrain mesh looks very boring - it is just white. This chapter
-will explain each part of an AAA quality ground shader.
+This chapter will explain each part of an AAA quality ground shader.
 
 ## Basic Setup
 
-Shaders are a type of code that can run on a GPU instead of a CPU. Writing
-shaders is simillar to sriting standard code, so if you don't have previous
-expirience with shaders don't worry. I will be trying to explain each part of
-creating this shader, but this shader will be preety complex because it has to
-avoid many issues that you could encounter while writing a ground shader.
+Shaders are programs executed on the GPU rather than the CPU. Their syntax and
+structure are similar to conventional programming languages, so prior graphics
+experience is helpful but not required. You can always use
+[Godot's website](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/shading_language.html)
+to lookup shader related data.
 
-First create a `.gdshader` file and put this code in it:
+Each part of the shader will be introduced **incrementally**. The final result
+is relatively **complex**, as terrain shaders must address multiple technical
+challenges such as texture repetition, biome blending, and surface detail
+variation.
+
+Begin by creating a `.gdshader` file and inserting the following code:
 
 ```gdshader
 //ground.gdshader
@@ -34,21 +31,26 @@ void fragment(){
 }
 ```
 
-This code will just sample the `albedo` texture and will use it across the whole
-mesh. Now open the mesh instance for your terrain mesh and set the surface
-material override with a shader material. Now place the created shader inside of
-the shader material and fill the `albedo` texture with a test texture.
+This code will just apply the `albedo` texture across the whole mesh. To use
+this shader you need to:
+
+1. Open the mesh instance of your **terrain mesh** in the Godot editor.
+2. Assign **shader material** to the **surface material override**.
+3. Place the created shader inside of the shader material and fill the `albedo`
+   texture with a test texture of your choice.
 
 ![basic test](./BasicShaderTest.png)
 
-## Triplanar Mapping
+## Triplanar Sampling
 
-Currently if we were to make another chunk of mesh and place them adjacent to
-each other we would see that the texture on one of the chunks wouldn't mach the
-texure on the other chunk. This is because our current implementation uses uv
-coodinates for the texture sampling. This is a big issue because the uv will not
-transition smoothily beetween our chunks, and seems will occure. There is a
-really easy way to avoid this- we need to use world position instead.
+If multiple terrain chunks are placed next to each other, visible seams may
+appear between them. This occurs because the current implementation relies on UV
+coordinates for texture sampling. Since each chunk has its own UV space, the
+texture mapping **doesn't align seamlessly across chunk boundaries**.
+
+A common solution to this problem is to sample textures using **world-space**
+position instead of **UV** coordinates. This technique ensures consistent
+texture placement across chunk borders and eliminates visible seams.
 
 ```diff lang="gdshader"
 //ground.gdshader
@@ -63,14 +65,18 @@ void fragment(){
 }
 ```
 
-This will fix our seem issue, but it has introduced another one. If we were to
-rotate our terrain or would look at the hilly parts of the terrain, we would see
-that the textures are streached. This is caused because we are sampling the
-texture using only the x and z coordinates. to fix this we will use a technique
-called 'Triplanar sampling'. Triplanar sampling will also allow us to display
-rock texture for steep parts of the terrain.
+The previous approach resolves the seam issue, but **introduces another
+problem**. When the terrain is rotated or when steep slopes are present,
+textures appear stretched. This happens because the texture is sampled using
+only the X and Z coordinates, **ignoring the Y axis**.
 
-To implement triplanar sampling we will do this:
+To address this, a technique called **triplanar sampling** is used. Triplanar
+sampling projects textures along the X, Y, and Z axes and blends them based on
+the surface normal. This prevents texture stretching on steep slopes. An
+additional benefit is that different textures (for example, rock vs grass) can
+be applied depending on the terrain slope.
+
+Triplanar sampling implementation:
 
 ```gdshader
 uniform float rock_scale;
@@ -98,13 +104,17 @@ vec3 triplanar (vec3 position, float biome_scale,vec3 normal, sampler2D biome_te
 }
 ```
 
-To calculate the value of normal at that point we will use this:
+This implementation uses the surface normal to determine blending weights for
+each texture projection. Surfaces that face upward receive more weight from the
+ground texture, while steep surfaces receive more weight from the rock texture.
+
+To compute the normal vector at a given point, the following code can be used:
 
 ```gdshader
 vec3 world_normal = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 ```
 
-Combined code:
+Combining those functions:
 
 ```diff lang="gdshader"
 //ground.gdshader
@@ -147,11 +157,12 @@ void fragment(){
 }
 ```
 
-If we now look at the results we shouldn't see any streached texutres. But the
-main issue with the current implementation is that transition beetween the rock
-and grass texutres will be very slow. This results in blended textures which
-doesn't look great. But there is a very simple fix for this. We can just do
-this:
+After applying triplanar mapping, texture stretching should no longer be
+visible. However, another issue becomes apparent: the transition between rock
+and grass textures can appear overly smooth, producing a blurred blend that
+looks awful.
+
+This can be improved by sharpening the blending curve:
 
 ```diff lang="gdshader"
 //ground.gdshader
@@ -169,35 +180,30 @@ void fragment(){
 
 ## Fixing Main Issues with the Current Implementation
 
-The current implementation looks really good, but it doesn't have that AAA
-quality that we are looking for. It mainly lacks:
+The current implementation looks fine, but it lacks features that would elevate
+it on the AAA quality:
 
-- Normal and roughness textures support
-- We can easily see texture repetition.
+- Normal and roughness textures support.
+- Fix texture repetition visible at large scale.
 - Support for more than one biome.
 
 ### Fixing Texture Repetition
 
-The c
+A strong approach for reducing visible tiling artifacts is stochastic sampling.
+This technique introduces controlled randomness into texture sampling, breaking
+up repetitive patterns while preserving continuity. A full explanation is
+outside the scope of this tutorial, but the following resources provide detailed
+coverage:
 
-Les's discus how we are going to fix texture repetition. There are many options
-to accomplish this but they all have many problems. But in my opinion the best
-way by far, to do this is to use something called stochastic sampling. I won't
-go into details, in this tutorial so if you want to know how this works look at
-those resources:
+- [Stochastic sample explanation](https://www.youtube.com/watch?v=yV4-MopMuMo)
+- [Paper about stochastic sampling](https://eheitzresearch.wordpress.com/722-2/)
 
-TODO: Add titles
-
-- https://www.youtube.com/watch?v=yV4-MopMuMo
-- https://eheitzresearch.wordpress.com/722-2/
-
-Honesty implementing this right would take a lot of trial and error, but
-thankfully there is a
-![really really nice godot implementation that we can use](https://github.com/acegiak/Godot4TerrainShader/tree/main?tab=readme-ov-file).
-And it is based on this ![unity implementation](https://pastebin.com/sDrnzYxB).
-That is in in fact based on the paper that I've linked before. Go and give some
-support to those people, this shader function works so great that it honestly
-feels like magic.
+Implementing stochastic sampling from scratch typically requires significant
+experimentation. Fortunately,
+[a high-quality Godot implementation](https://github.com/acegiak/Godot4TerrainShader/tree/main?tab=readme-ov-file)
+is available. To give credit where it's due, this implementation is based on a
+[Unity adaptation](https://pastebin.com/sDrnzYxB). That implementation in turn
+is based on [this paper](https://eheitzresearch.wordpress.com/722-2/).
 
 ```gdshader
 //ground.gdshader
@@ -230,7 +236,7 @@ vec3  stochastic_sample(sampler2D albedo_texture, vec2 uv){
 }
 ```
 
-Now we can use it in our code like this:
+This code can be use now in our code to replace the standard texture sample.
 
 ```diff lang="gdshader"
 //ground.gdshader
@@ -290,7 +296,7 @@ vec3 triplanar (vec3 position, float biome_scale,vec3 normal, sampler2D biome_te
 
 ### Support for Normal and Roughness Textures
 
-First we need to declear a data structure that will store all data at once.
+First, a data structure that will store all the needed data.
 
 ```gdshader
 struct NormalAlbedoRoughness{
@@ -300,7 +306,8 @@ struct NormalAlbedoRoughness{
 };
 ```
 
-Than we need to modify some of the functions
+Next, some of the functions that we've implemented before need to be changed a
+bit.
 
 ```diff lang="gdshader"
 - vec3  stochastic_sample(sampler2D albedo_texture, vec2 uv){
@@ -388,53 +395,60 @@ Than we need to modify some of the functions
 }
 ```
 
-To make this work we would also have to change the `fragment()` function's
-contents but we will be changing them with the next improvements so I will
-ignore this part.
-
 ### Types of Biome Generation
 
-One of the main goals of this project is implementing a code that will support
-generating different biomes, that can have different properties, in a semi
-realistic way.
+One of the main goals of this project is to implement a system capable of
+generating multiple biomes with distinct properties (for example, different
+ground textures).
 
-There are many ways to acomplish this but these two are the most popular ones:
+There are many approaches to biome generation, but two of the most common are:
 
-- Selecting biome based on the height.
-- Generating biomes based on aspects that change across the map in a semi
-  realistic way.
+- Selecting a biome based solely on terrain height.
+- Generating biomes using multiple parameters that vary across the map, and in
+  turn result in more natural biome generation.
 
-Height based generation is the easiest and the most popular, but the second
-option gives us a lot more customization and makes the terrain feel a lot more
-realistic. Also there are a lot of
-[tutorials](https://www.youtube.com/watch?v=wbpMiKiSKm8&list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3)
-for the height based generation so feel free to explore this way of generating
-the terrain.
+Height-based biome generation is simple and widely used. However, using multiple
+terrain parameters provides greater flexibility and results in more realistic
+terrain. Since many tutorials already cover height-based biome generation (for
+example this
+[tutorial series](https://www.youtube.com/watch?v=wbpMiKiSKm8&list=PLFt_AvWsXl0eBW2EiBtl_sxmDtSgZBxB3)
+), this guide focuses on the more flexible approach.
 
-In this tutorial I will be implementing terrain that will genetate biomes, and
-based on them the whole terrain, based on generated terrain aspects. I will
-explain the details of the implementation in depth later.
+In this tutorial, biome distribution will be generated using several terrain
+characteristics (such as height, slope, or noise-based parameters like
+moisture). These biome weights will then influence both terrain appearance and
+object placement. Implementation details will be explained in later sections.
 
 ### Support for Multiple Biomes
 
-Because of the choice of biome generation type, we need a way to read biome data
-in the ground shader.\
-We will do this by creating a texture containing that data. We will need to
-create a separate texture for each of the terrain chunks. Each texture will
-store biome data by assigning one color channel to one biome and using the value
-of that color as the influence of that biome. This means that, for example, if
-we want to use 10 biomes we will need to assign 3 textures for each biome
-chunk.\
-This is fine for small amount of biomes because the data doesn't have to have a
-high resolution.\
-This will be really easy to implement, and other ways of encoding the biome data
-could face many difficulties.
+Because of the selected biome generation implementation, the shader needs access
+to biome weight information. This is achieved by encoding biome weights into
+textures.
 
-In this tutorial I will assume use of 8 biomes and therefor 2 biome texture.
+Each terrain chunk will have an associated biome texture. Each color channel
+stores the influence of a specific biome. The value of each channel represents
+the blending weight of that biome at a given position.
 
-That's enough of divagation, let's go back to implementing the shader.
+Since one texture provides four channels (RGBA), multiple textures may be
+required when supporting many biomes. For example:
+
+- 4 biomes → 1 texture
+- 8 biomes → 2 textures
+
+In this tutorial, we assume 8 biomes, which requires 2 biome textures per
+terrain chunk.
+
+This approach is straightforward to implement, memory-efficient, and integrates
+well with shader-based texture blending, but it may not scale well with large
+amounts of biome types.
+
+With the biome data representation defined, we can now proceed with implementing
+the shader.
 
 #### Storing the Biome's Ground Textures
+
+Each biome needs its own textures and processing value. Sadly `gdshader` doesn't
+have dynamic arrays.
 
 ```gdshader
 const int BIOMES_COUNT = 8;
@@ -446,13 +460,11 @@ uniform sampler2D[BIOMES_COUNT] biome_normal_textures;
 uniform sampler2D[BIOMES_COUNT] biome_roughness_textures;
 ```
 
-Each biome has to have separate data.
-
 #### Using the Biome Data
 
-Firs we need to implement a function that will take the biome's influence and
-sample the needed textures. It will add to the output multiplied by the
-influence of that biome.
+Function that will take the biome's influence and sample the needed textures
+needs to be implemented. It will add to the output multiplied by the influence
+of that biome.
 
 ```gdshader
 void handle_biome(int biome, float influence, vec3 position, vec3 worldNormal, vec3 adjusted_normal,
@@ -471,8 +483,8 @@ void handle_biome(int biome, float influence, vec3 position, vec3 worldNormal, v
 }
 ```
 
-Next we will need to collect the output of the previously implemented function
-for each of the biomes.
+Next a `collect_biome_data` will collect data from `handle_biome` function
+applied for each of the biome.
 
 ```gdshader
 NormalAlbedoRoughness collect_biome_data(vec4 biome_data_1, vec4 biome_data_2,vec3 world_pos, vec3 world_normal, vec3 adjusted_normal){
@@ -492,6 +504,9 @@ NormalAlbedoRoughness collect_biome_data(vec4 biome_data_1, vec4 biome_data_2,ve
 	return NormalAlbedoRoughness(output_normal, output_color, output_roughness);
 }
 ```
+
+In the end the fragment function will need to sample data from its biome
+textures using the `collect_biome_data` function with valid inputs.
 
 ```diff lang="gdshader"
 +const int biome_textures_count = 517;
@@ -515,11 +530,14 @@ void fragment(){
 }
 ```
 
-## Some Final Processing
+Final Adjustments
 
-To give a bit more realistic output we can add a bit of final processing to the
-output. Just use a noise texture to modify the albedo 'brightness', metalic, and
-spectacular. Additionally we can change ganin and offset the final color.
+To produce more realistic surface variation, a final layer of detail can be
+added to the shader output. A noise texture can be used to introduce subtle
+variation in the albedo, metallic, and specular values. This helps break up
+uniform surfaces and improves visual realism.
+
+Additionally, the final color can be adjusted using gain and color offset.
 
 ```diff lang="gdshader"
 +uniform sampler2D post_processing_noise;
@@ -552,6 +570,8 @@ void fragment(){
 ```
 
 ## Final Result
+
+![Result](./result.png)
 
 <details>
 
