@@ -1,6 +1,6 @@
 ---
-title: Overview of the whole procedural terrain generation tutorial.
-description: Overview of the project in whitch i implement a procedural terrain generation for Godot in C#.
+title: Overview of procedural terrain generation tutorial
+description: Overview of the project in whitch I implement a procedural terrain generation for Godot in C#.
 ---
 
 In this tutorial I describe how to implement a high quality terrain generation
