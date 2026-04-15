@@ -1,5 +1,5 @@
 ---
-title: Generating a basic ground mesh.
+title: Basic procedural ground mesh in Godot
 description: Generateing basic fround mesh for terrain generation in godot with C#. It includes vertex, UV, index, normal, and tangent data generation.
 ---
 

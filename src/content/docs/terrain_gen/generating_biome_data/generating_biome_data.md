@@ -1,18 +1,29 @@
 ---
-title: 3. Generating biome data
-description: Generating biome data
+title: Generating realistic looking biomes
+description: Generating realisticly behaving biomes for procedural terrain in Godot using C#.
 ---
 
-On this page I will explain how to geneate biomes texture that, among others,
-will be used as a data for a terrain ground shader that was implemented on the
-previous page.
+On this page, I explain how to generate biome textures, which among others will
+be used as input data for the terrain shader implemented in the previous
+section.
 
 ## Terrain Aspects
 
-To decide what biome should we select for a ceratin point on a terrain chunk, we
-will generate terrain aspects. In this tutorial we will use: moisture,
-temperature, elevation, ruggedness, slope. You might add any other terrain
-aspect that you find useful.
+To determine which biome should be assigned to a given point on a terrain chunk,
+we define a set of **terrain aspects**. In this tutorial we will use: moisture,
+temperature, elevation, ruggedness, slope. These are continuous fields
+describing environmental properties at each point.
+
+In this tutorial, the following aspects are used:
+
+- moisture
+- temperature
+- elevation
+- roughness
+- slope
+
+Additional aspects can be introduced depending on the desired level of realism
+or control.
 
 ```cs
 public class TerrainAspects(float moisture, float temperature, float elevation, float slope, float roughness)
@@ -26,11 +37,13 @@ public class TerrainAspects(float moisture, float temperature, float elevation, 
 }
 ```
 
-To generate most of the terrain aspects we will just use noise at different
-frequences and offsets. The only one that we will use a different aproach for
-will be the slope. To generate it we will messure how fast the elevation terrain
-aspect chagnes. We will use it later to stop objects like trees from spawing
-where terrain height is rapidly chaining.
+Most terrain aspects are generated using noise functions with different
+frequencies and offsets. This allows for large-scale variation combined with
+fine detail.
+
+The slope aspect is computed differently. It is derived from the rate of change
+of the elevation field. This value can later be used to restrict object
+placement-for example, preventing trees from spawning on steep terrain.
 
 ```cs
 private float CalculateSlope(Vector2 pos)
@@ -102,8 +115,9 @@ public partial class TerrainAspectsSolver : Node
 }
 ```
 
-I've used a `NoiseComponent` in there. It is a class that will allow us to
-easily combine multiple nosies at different amplitudes in a godot editor.
+A custom `NoiseComponent` class is used to simplify noise generation. It allows
+multiple noise layers to be combined with different amplitudes and parameters
+directly within the Godot editor.
 
 ```cs
 // NoiseComponent.cs
@@ -150,11 +164,13 @@ public partial class NoisePart : Resource
 
 ## Biome Data Structure
 
-Now we need to implement a data structure that will hold data for biomes. It
-needs to be easily coustomized from the editor. It will hold some data that will
-be later assinged to the ground shader by a funciton that we will later
-implement. It will also hold what values of terrain aspects it preferes inside
-of a `FloatRange`.
+Next, a data structure for storing biome information needs to be defined. This
+structure should be easily configurable from the editor and contain all data
+required by the terrain shader.
+
+Each biome will define its preferred ranges for terrain aspects (e.g.,
+temperature, moisture) using a `FloatRange` . These values will later be used to
+compute biome influence.
 
 ```cs
 // Biome.cs
@@ -181,8 +197,8 @@ public partial class Biome : Resource
 }
 ```
 
-`FloatRange` is a simple data structure that holds the minimum and max value and
-allows for simple customization in the editor.
+`FloatRange` will be a simple data structure that stores a minimum and maximum
+value and allows for convenient editing in the inspector.
 
 ```cs
 //FloatRange.cs
@@ -195,12 +211,14 @@ public partial class FloatRange : Resource
 }
 ```
 
-## Generating Biomes Data
+## Generating Biome Data
 
-To generate the biomes for a ceratin point we will just generate terrain aspects
-and decide based on them which biome should we chose.\
-To do this we will go thru all biomes and give them influence based on their
-preferences.
+To determine biome influence at a given point, we first compute the terrain
+aspects. Then, for each biome, we evaluate how well the current terrain values
+match its preferred ranges.
+
+Each biome is assigned an influence value based on this match. These influence
+values are then normalized to ensure consistent blending between biomes.
 
 ```cs
 [Export] float biome_transitions_smoothness;
@@ -211,8 +229,7 @@ private float GetInfluenceForTerrainAspect(FloatRange preferred, float value)
 }
 ```
 
-Biome influence will be than normalized to make ground textures look uniform.
-The output influence data will than be stored in a `BiomeInfluence` class.
+The resulting data is stored in a `BiomeInfluence` structure.
 
 ```cs
 public class BiomeInfluence(Biome biome, float influence)
@@ -257,10 +274,10 @@ private List<BiomeInfluence> GetBiomeInfluences(TerrainAspectsSolver.TerrainAspe
 }
 ```
 
-The biome data will need to be later converted into a texture that will be used
-by the gorund shader. For this I will create a special class named `TextureData`
-that will handle this. It will also allow for easy readding of this data by code
-that we will implement later.
+The biome influence data must be converted into textures for use in the terrain
+shader. To handle this, a `TextureData` class is introduced. This class is
+responsible for encoding biome influence values into texture channels and
+providing access to this data for later use.
 
 ```c
 public class TextureData(int texture_resolution, byte[][] biome_maps, Biome[] biomes)
@@ -316,11 +333,12 @@ public class TextureData(int texture_resolution, byte[][] biome_maps, Biome[] bi
 }
 ```
 
-Next we will need to combine all of the code that we've implemented. In the
-`GenerateTextureData` funciton we will be generating terrain aspects with a
-certain resoulution and that using this to generate biomes. The generrated data
-will than be stored in array. Later create the `TextureData` with all the needed
-data for it to work.
+The `GenerateTextureData` function combines the previous steps:
+
+- Generate terrain aspects at a given resolution
+- Compute biome influences for each point
+- Store the results in an array
+- Construct a `TextureData` object from the generated data
 
 ```cs
 private const int COLOR_CHANNELS = 4;
@@ -528,11 +546,13 @@ public partial class BiomeGenerator : Node
 
 ## Assigning Data to the Ground Shader
 
-Now that we have generated the biome data we will need to assing in to the
-ground shader.\
-To do this we will implement a `GroundShaderController` class. It will not only
-assign the biome texutres but also configure the whole shader. It will readd all
-the data off biomes and combine it into arrays that the ground shader requiers.
+Once the biome textures are generated, they must be passed to the terrain
+shader. This is handled by a `GroundShaderController` class. Its
+responsibilities include:
+
+- Assigning biome textures to the shader
+- Configuring shader parameters
+- Organizing biome-related data into arrays required by the shader
 
 ```cs
 using Godot;
@@ -614,10 +634,10 @@ public partial class GroundShaderController : Node
 }
 ```
 
-## Using Generated Biome Data
+## Integration
 
-Now let's just modify the `GenerationController` a tiny bit ot use the biome
-generator and ground shdader controller.
+Finally, the `GenerationController` is updated to integrate the biome generator
+and the shader controller, completing the terrain generation.
 
 ```diff lang="cs"
 // GenerationController.cs
@@ -648,14 +668,6 @@ public partial class GenerationController : Node
 
 }
 ```
-
-## Configuration
-
-TODO: Describe configuration
-
-## Results
-
-TODO: Add photos
 
 ---
 
