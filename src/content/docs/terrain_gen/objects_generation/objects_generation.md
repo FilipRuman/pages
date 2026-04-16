@@ -1,15 +1,21 @@
 ---
-title: Objects generation
-description: TODO
+title: Generating small objects like trees or grass
+description: Implementing procedural generation for small objects like trees, rocks or grass
 ---
 
-The ground it self looks really good currently with the current implemetnation
-but it feels empty anyway. To fix this we need to generate trees, grass, rocks,
-bushes, etc. On this page we will implement generation for small objects.
+The terrain surface now looks good, but it lacks detail. To improve visual
+richness, we need to generate small objects such as trees, grass, rocks, and
+bushes. This section focuses on procedural generation of these objects.
 
-Let's start by defining a class that will hold the data that we will be able to
-customize in an object. We will give it standard customization options and
-obviously a mesh and a collider.
+## Object Definitions
+
+We begin by defining a class that represents a spawnable object. This class
+should be configurable in the editor and include:
+
+- Mesh
+- Collider
+- Scale and rotation settings
+- Spawn-related parameters
 
 ```cs
 //TerrainObject.cs
@@ -28,8 +34,14 @@ public partial class TerrainObject : Resource
 }
 ```
 
-Next thing that we need will be a data structure that will hold data used for
-instantiating objects.
+Next, we define a data structure (`ObjectInstantiationData`) that stores all
+information required to instantiate an object:
+
+- Position
+- Rotation
+- Scale
+
+This structure is used to transfer data from worker threads to the main thread.
 
 ```cs
 //ObjectInstantiationData.cs
@@ -44,15 +56,22 @@ public struct ObjectInstantiationData(Vector3 pos, Vector3 rot, Vector3 scale, T
 }
 ```
 
-To instantiate objects on terrain we will first find positions that are valid of
-object of a type and than we will calculate scale and rotation of this obejct
-based on the position. Than the values that we have generated will be packed
-into `ObjectInstantiationData` so they can be used for instantiation on the main
-thread. This will be done on a class named `BiomeObjectsGenData`. Each biome
-class will have it's `BiomeObjectsGenData` and it will be responsible for
-returning `ObjectInstantiationData` for each of the biomes. This is needed
-because different objects might spawn on different biomes- cactuses won't grow
-on snow.
+## Generating Object Instance Data
+
+### Biome-Based Object Generation Explanation
+
+Object placement depends on biome data. Each biome has an associated
+`BiomeObjectsGenData` class responsible for generating objects appropriate for
+that biome.
+
+For each position on the terrain:
+
+- Compute biome influences
+- Determine which objects can spawn
+- Assign spawn probabilities based on biome weights
+
+This ensures, for example, that cacti appear in deserts and not in snowy
+regions.
 
 ```cs
 //BiomeObjectsGenData.cs
@@ -82,9 +101,13 @@ public Vector3 GetRotation(Vector2 pos, float rotation_amplitude)
 }
 ```
 
-Terrain generation needs to yield the same results every time we generate a
-chunk at a certain position. Because of this seed for RNG(random number
-generation) needs to be calculated for each chunk based on its position.
+### Deterministic Generation
+
+Terrain generation must be deterministic. For a given chunk position, the same
+objects should always be generated.
+
+To achieve this, the random number generator (RNG) is seeded using the chunk’s
+position. A special static class will be defined to make it easier.
 
 ```cs
 using Godot;
@@ -107,14 +130,15 @@ public static class RNG
 }
 ```
 
-Each biome will have many objects of one type- 3 versions of trees, 5 verions of
-rocks, 20 versions of grass etc. We will need to chose one of them for each
-localisation that we work with. The best options to do this will be combining
-noise textures with sudo random numbers. The noise texture will say the
-propability of spawning a certain object at a certain postion. This will allow
-to generate clusters of object versions but also it won't mean that in those
-cluser only one object version will spawn. This should give the best looking
-results.
+### Object Variants and Distribution
+
+Each object type (e.g., trees, rocks, grass) may have multiple variants. To
+select between them, we combine:
+
+- Noise-based distribution (for clustering)
+- Pseudo-random variation (for diversity)
+
+This produces natural-looking clusters without excessive repetition.
 
 ```cs
 //BiomeObjectsGenData.cs
@@ -148,14 +172,18 @@ private ObjectInstantiationData? GetObjectInstantiationDataForPosition(Vector3 w
 }
 ```
 
-Objects will be split into different types- in this tutorial it will be: trees,
-grass, and rocks. This separation will allow us to generate objecte types with
-different frequencies on certain biomes. For example on a mountain tops we will
-generate trees really sparsely while generating lots of rocks. This
-implemetnation will also allow for a different generation strategy for some of
-the object types. In our case we will want to ensure that the trees are
-generated far enought from eachother, while ignoring this when generating grass
-or rocks.
+### Object Types
+
+Objects are divided into categories such as:
+
+- Trees
+- Grass
+- Rocks
+
+This allows different generation strategies per type. For example:
+
+- Trees: low density, require spacing
+- Rocks and grass: high density, no spacing constraints
 
 ```cs
 //BiomeObjectsGenData.cs
@@ -283,7 +311,7 @@ public partial class BiomeObjectsGenData : Resource
 }
 ```
 
-<details>
+</details>
 
 We need to assign a separate `BiomeObjectsGenData` for each of the biomes.
 
@@ -310,18 +338,31 @@ public partial class Biome : Resource
 }
 ```
 
-For object's meshes we will be using a
-[MultiMeshInstance3D](https://docs.godotengine.org/en/stable/tutorials/3d/using_multi_mesh_instance.html#setting-up-the-nodes).
-This node type allows us to draw many objects with the same mesh efficiently. We
-will store this data in a `ObjectTypeSpawnData` class. It needs to hold the
-mesh, and data describing the transrom of each of the instances.
-[Multi mesh
-instance requiers this transform data to be stored in a specific way as an array of floats](https://docs.godotengine.org/en/stable/classes/class_multimesh.html#class-multimesh-property-transform-array).
-This data will be stored in a `instance_transforms`.
+## Instantiating Objects
 
-But objects not only need meshes but also colisions. For this, the
-`ObjectTypeSpawnData` will store postions and scales of the node that will be
-instantiated for each of the instances of object.
+## Efficient Rendering with MultiMesh
+
+For rendering, we use
+[MultiMeshInstance3D](https://docs.godotengine.org/en/stable/tutorials/3d/using_multi_mesh_instance.html#setting-up-the-nodes),
+which allows efficient instancing of many identical meshes.
+
+Instance data is stored in an `ObjectTypeSpawnData` structure, which contains:
+
+- Mesh reference
+- Transform data for all instances
+
+Transforms must be packed into a float array in the format required by
+`MultiMesh`.
+
+### Collider Data
+
+In addition to rendering, objects may require colliders. Therefore,
+`ObjectTypeSpawnData` also stores:
+
+- Positions
+- Scales
+
+These are used to instantiate collision nodes separately.
 
 ```cs
 // ObjectsGenerator.cs
@@ -364,11 +405,13 @@ private static void SpawnObjectType(ObjectTypeSpawnData spawn_data, Node3D paren
 }
 ```
 
-In the previous code we cerated an easy to use class `ObjectInstantiationData`
-now we need to convert it into the float array that the `MultiMeshInstance3D`
-needs. We will do this by creating a `Basis` with all the needed translations
-applied. Than we just take all of the data from it's matrix combined with palyer
-postions in a specific way.
+`ObjectInstantiationData` must be converted into the format required by
+`MultiMesh`.
+
+This involves:
+
+- Constructing a Basis (rotation + scale)
+- Flattening the resulting transform, combined with position, into a float array
 
 ```cs
 // ObjectsGenerator.cs
@@ -445,15 +488,29 @@ public class ObjectTypeSpawnData
 }
 ```
 
-To generate objects in a terrain chunk we will need to generate random points
-inside of a chunk and generate objects on them. For each of the points we will
-need to calculate at what height the object should be generated and influences
-of different biomes. Based on the biome influences we can get what objects we
-can generate with what propability. If one biome has more influence in this
-point the chance for generating an object form this biome should be higher.
-After we finally generate the object instance data for this point we need to
-store it in a dictionary that will allow us to easily spawn those objects under
-a single multi mesh instance.
+## Object Generation Process
+
+To generate objects within a chunk:
+
+- Sample random positions within the chunk
+- Compute terrain height and biome influences
+- Evaluate spawn probability
+- Generate `ObjectInstantiationData`
+- Group results by object type
+
+The results are stored in a dictionary mapping object types to their instances.
+This allows us to easily spawn multiple instances of a single object type under
+one `MultiMeshInstance3D`.
+
+### Objects Without Spacing
+
+For objects such as grass and rocks, spacing constraints are unnecessary.
+
+The `GenerateObjectsWithoutSpacing` function:
+
+- Samples positions at random.
+- Generates instances based on probability
+- Groups them into `ObjectTypeSpawnData`
 
 ```cs
 // ObjectsGenerator.cs
@@ -492,7 +549,7 @@ public void GenerateObjectsWithoutSpacing(BiomeObjectsGenData.GetterType object_
 ```
 
 The `GenerateObjectsWithoutSpacing` function needs to be called for each of the
-object types that needs to be generated without spacing(grass and rock). Then we
+object types that needs to be generated without spacing(grass and rock). Next
 collect all the data out of the `object_instances_dictionary` and put it into
 separate `ObjectTypeSpawnData` for each object variant.
 
@@ -534,9 +591,9 @@ public ObjectTypeSpawnData[] GenerateObjectSpawnDataForChunk(int chunk_size,
 }
 ```
 
-When we want to instantiate objects from the data that was generated by the
-`GenerateObjectsData` we just need to call `SpawnObjectType` for each of the
-`ObjectTypeSpawnData` in the array.
+`SpawnObjectType` function will be used to instantiate one variant of object
+from the data that was generated by the `GenerateObjectsData`. This will be
+called by a general `SpawnObjects` function for each `ObjectTypeSpawnData`.
 
 ```cs
 // ObjectsGenerator.cs
@@ -710,16 +767,24 @@ public partial class ObjectsGenerator : Node
 
 </details>
 
-While generating objects like grass or rocks we don't need to check if they
-don't overlap. They are so small that overlap won't happen often, and even they
-overlap this won't look very ugly. In the other hand overlapping trees would
-look very bad so to avoid this wee need to ensure that they are spaced far
-enough from each other.
+## Generating Objects with Spacing (E.g., Trees)
 
-For performance raesons we will be utilizing the good old techinque of splitting
-objects into a grid. We also need to keep in mind that to avioid any overlapping
-beetween objects from neightbor terrain chunks we need to generate one grid cell
-of margin on each side.
+When generating small objects such as grass or rocks, overlap checks are not
+necessary. These objects are small enough that intersections are infrequent and
+visually insignificant.
+
+In contrast, larger objects such as trees require spacing constraints.
+Overlapping trees are visually noticeable and should be avoided. To enforce
+minimum distance between instances, we introduce a spacing mechanism.
+
+For performance reasons, this is implemented using a grid-based approach:
+
+- The terrain is divided into grid cells
+- Each cell can contain at most one object
+- Cell size is chosen based on the required minimum spacing
+
+To prevent overlaps between objects generated in neighboring terrain chunks, an
+additional margin of one grid cell is generated around each chunk.
 
 ```cs
 //TreeObjectsGenerator.cs
@@ -760,8 +825,8 @@ public class ObjectSpacing(Vector2 pos, float min_distance_sqrt)
 }
 ```
 
-To check if a position for instantiating object is valid, we will just go
-through all the objects that are in the neighbor cells and check if they are far
+To ensure a position is valid for object instantiation, the distance to all
+objects in neighboring cells must be checked.
 
 ```cs
 //TreeObjectsGenerator.cs
@@ -790,9 +855,8 @@ private static bool IsFarFarEnough(Vector2 pos, float main_min_distance_sqrt, Ob
 }
 ```
 
-When generating objests with spacing we will just generate maximally one object
-per grid cell because the cell widht is choses so that the second object in the
-same cell would always be too close to the first one.
+The cell size should be selected such that at most one object can be placed per
+cell. This simplifies the generation and spacing process
 
 ```cs
 private static float GridCellWidth(float minimal_object_spacing_sqrt)
@@ -802,9 +866,12 @@ private static float GridCellWidth(float minimal_object_spacing_sqrt)
 }
 ```
 
-To generate object in a cell just take a random point inside of the cell and
-calculate `ObjectInstantiationData` in the same way as when generating objects
-without spacing.
+Generating spaced objects is similar to the process without spacing. The main
+differences are:
+
+- Random positions are sampled once per grid cell, rather than multiple times
+  across the entire terrain chunk.
+- Each position must be validated using the `IsPosValid` function.
 
 ```cs
 //TreeObjectsGenerator.cs
@@ -856,8 +923,8 @@ private static void GenerateObjectForGridCell(float minimal_object_spacing_sqrt,
 }
 ```
 
-The `GenerateObjectForGridCell` function needs to be called for each of the grid
-cells to generate objects for the whole terrain chunks.
+`GenerateObjectForGridCell` function needs to be called for each of the cells to
+generate objects for the whole terrain chunks.
 
 ```cs
 //TreeObjectsGenerator.cs
@@ -1029,10 +1096,14 @@ public static class TreeObjectsGenerator
 
 </details>
 
-The last step will be modifying the `GenerationController` just a tiny bit. We
-need to make it generate the `ObjectTypeSpawnData`, store it in the `ChunkData`
-class. Than when it instantiates the terrain chunk on the main thread it needs
-to also call the `ObjectsGenerator.SpawnObjects` function.
+## Integration
+
+Finally, the `GenerationController` needs minor adjustments:
+
+- Generate `ObjectTypeSpawnData` during chunk data generation
+- Store this data in the `ChunkData` structure
+- During chunk instantiation on the main thread, call
+  `ObjectsGenerator.SpawnObjects` to create the objects
 
 ```diff lang="cs"
 using System;
@@ -1248,7 +1319,7 @@ public partial class GenerationController : Node
 
 ## Results
 
-TODO:
+![Result](./Result.png)
 
 ---
 

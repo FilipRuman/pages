@@ -112,6 +112,7 @@ export default defineConfig({
             { slug: "terrain_gen/generating_biome_data/generating_biome_data" },
             { slug: "terrain_gen/chunked_terrain_generation/chunked_terrain_generation" },
             { slug: "terrain_gen/ilmg/ilmg" },
+            { slug: "terrain_gen/objects_generation/objects_generation" },
           ],
         },
 
