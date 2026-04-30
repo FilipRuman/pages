@@ -113,6 +113,8 @@ export default defineConfig({
             { slug: "terrain_gen/chunked_terrain_generation/chunked_terrain_generation" },
             { slug: "terrain_gen/ilmg/ilmg" },
             { slug: "terrain_gen/objects_generation/objects_generation" },
+            { slug: "terrain_gen/structures_generation/structures_generation" },
+
           ],
         },
 
